@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import FilterComponent from './FilterComponent';
 import BookComponent from './BookComponent';
+import {API_URL} from '../../config'
 import Pagination from './Pagination'; 
+
 
 const BookLibrary = ({ searchTerm }) => {
   const [books, setBooks] = useState([]);
@@ -18,8 +20,8 @@ const BookLibrary = ({ searchTerm }) => {
     const fetchData = async () => {
       try {
         const [booksResponse, genresResponse] = await Promise.all([
-          axios.get('http://localhost:5000/api/story/published'),
-          axios.get('http://localhost:5000/api/story/genres')
+          axios.get(`${API_URL}/story/published`),
+          axios.get(`${API_URL}/story/genres`)
         ]);
         setBooks(booksResponse.data);
         setFilteredBooks(booksResponse.data);

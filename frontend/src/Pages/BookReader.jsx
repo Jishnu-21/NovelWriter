@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import {API_URL} from '../config'
 
 const BookReader = () => {
   const { id } = useParams();
@@ -15,7 +16,7 @@ const BookReader = () => {
   useEffect(() => {
     const fetchChapter = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/chapters/${id}`);
+        const response = await axios.get(`${API_URL}/chapters/${id}`);
         setChapter(response.data[0]);
         setLoading(false);
       } catch (err) {

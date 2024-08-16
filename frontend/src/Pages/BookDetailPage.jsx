@@ -4,6 +4,7 @@ import axios from 'axios';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
+import {API_URL} from '../config'
 
 const BookDetailPage = () => {
   const { id } = useParams();
@@ -15,7 +16,7 @@ const BookDetailPage = () => {
   useEffect(() => {
     const fetchStoryDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/story/${id}`);
+        const response = await axios.get(`${API_URL}/story/${id}`);
         setStory(response.data.story);
         setLoading(false);
       } catch (err) {

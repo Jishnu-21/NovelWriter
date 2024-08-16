@@ -1,11 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import {API_URL} from '../../config'
 
 export const fetchUnpublishedStories = createAsyncThunk(
   'stories/fetchUnpublishedStories',
   async (userId, thunkAPI) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/story/unpublished?userId=${userId}`);
+      const response = await fetch(`${API_URL}/story/unpublished?userId=${userId}`);
       const data = await response.json();
       return data;
     } catch (error) {
@@ -19,7 +20,7 @@ export const fetchStoryById = createAsyncThunk(
   'stories/fetchStoryById',
   async (storyId, thunkAPI) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/story/${storyId}`);
+      const response = await axios.get(`${API_URL}/story/${storyId}`);
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
@@ -31,7 +32,7 @@ export const fetchChaptersByStoryId = createAsyncThunk(
   'stories/fetchChaptersByStoryId',
   async (storyId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/chapters/${storyId}`);
+      const response = await axios.get(`${API_URL}/chapters/${storyId}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -45,7 +46,7 @@ export const deleteStory = createAsyncThunk(
   async (storyId, { rejectWithValue }) => {
     try {
       console.log('Attempting to delete story with ID:', storyId);
-      const response = await axios.delete(`http://localhost:5000/api/story/${storyId}`);
+      const response = await axios.delete(`${API_URL}/story/${storyId}`);
       console.log('Delete response:', response);
       return storyId;
     } catch (error) {
@@ -72,7 +73,7 @@ export const createStory = createAsyncThunk(
   'stories/createStory',
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/story/stories', formData, {
+      const response = await axios.post('${API_URL}/story/stories', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -95,7 +96,7 @@ export const fetchGenres = createAsyncThunk(
   'stories/fetchGenres',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('http://localhost:5000/api/story/genres');
+      const response = await axios.get('${API_URL}/story/genres');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch genres');
@@ -107,7 +108,7 @@ export const publishStory = createAsyncThunk(
   'stories/publishStory',
   async (storyId, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`http://localhost:5000/api/story/publish/${storyId}`);
+      const response = await axios.put(`${API_URL}/story/publish/${storyId}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);

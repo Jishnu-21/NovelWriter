@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import React, { useState, useEffect } from 'react';
 import { logout } from '../features/auth/authSlice';
+import {API_URL} from '../../src/config'
 
 const ProtectedUserRoute = ({ element }) => {
   const { user } = useSelector((state) => state.auth);
@@ -14,7 +15,7 @@ const ProtectedUserRoute = ({ element }) => {
       if (!userId) return; 
 
       try {
-        const response = await fetch(`http://localhost:5000/api/users/${userId}`);
+        const response = await fetch(`${API_URL}/users/${userId}`);
         console.log(response)
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { MdClose } from 'react-icons/md';
 import axios from 'axios';
 import { addInterest } from '../../features/user/userActions'; // Import the action
+import {API_URL} from '../../config'
 
 const GenreModal = ({ isOpen, onClose, onInterestsUpdated }) => {
   const { user } = useSelector((state) => state.auth);
@@ -11,11 +12,11 @@ const GenreModal = ({ isOpen, onClose, onInterestsUpdated }) => {
   const dispatch = useDispatch();
   const userData = user?.user || {};
   const userId = userData.id || user._id;
-
+ 
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/story/genres'); // Replace with your genres API endpoint
+        const response = await axios.get(`${API_URL}/story/genres`); // Replace with your genres API endpoint
         setAllGenres(response.data);
       } catch (error) {
         console.error('Error fetching genres:', error);
@@ -35,7 +36,7 @@ const GenreModal = ({ isOpen, onClose, onInterestsUpdated }) => {
 
   const handleSave = async () => {
     try {
-      await axios.post(`http://localhost:5000/api/users/${userId}/interests`, {
+      await axios.post(`${API_URL}/users/${userId}/interests`, {
         interests: selectedGenres
       });
       dispatch(addInterest(user._id, selectedGenres)); 

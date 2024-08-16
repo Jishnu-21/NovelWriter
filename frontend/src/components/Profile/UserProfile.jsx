@@ -5,6 +5,7 @@ import { FaUserCircle, FaEdit, FaCamera, FaBookOpen, FaTags } from 'react-icons/
 import GenreModal from './GenreModal';
 import RecommendedStories from './RecommendedStories';
 import axios from 'axios';
+import {API_URL} from '../../config'
 
 const UserProfile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -21,11 +22,12 @@ const UserProfile = () => {
   const userData = user?.user || {};
   const userId = userData.id || user._id;
 
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:5000/api/users/${userId}`);
+        const response = await fetch(`${API_URL}/users/${userId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -43,7 +45,7 @@ const UserProfile = () => {
 
     const fetchUserStories = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/story/by-author/${userId}`);
+        const response = await fetch(`${API_URL}/story/by-author/${userId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -67,7 +69,7 @@ const UserProfile = () => {
     formData.append('file', imageFile);
 
     try {
-      const response = await axios.put(`http://localhost:5000/api/users/${userId}`, formData, {
+      const response = await axios.put(`${API_URL}/users/${userId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -95,7 +97,7 @@ const UserProfile = () => {
 
   const handleAddInterests = async () => {
     try {
-      const response = await axios.put(`http://localhost:5000/api/users/${userId}`, {
+      const response = await axios.put(`${API_URL}/users/${userId}`, {
         interests: interests.split(',').map(interest => interest.trim())
       });
 

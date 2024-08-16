@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/admin'; // Update this with your actual API URL
+import {API_URL} from '../../config'
 
 const fetchUsers = async () => {
   const response = await axios.get(`${API_URL}/users`);

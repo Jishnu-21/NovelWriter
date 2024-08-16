@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
-import { FaUserCircle } from 'react-icons/fa';
+import { FaUserCircle, FaBars, FaTimes } from 'react-icons/fa';
+import {API_URL} from '../../src/config/'
 
 const NavBar = () => {
   const { user } = useSelector((state) => state.auth);
@@ -18,10 +19,10 @@ const NavBar = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!userId) return; // Exit if userId is not available
+      if (!userId) return;
 
       try {
-        const response = await fetch(`http://localhost:5000/api/users/${userId}`);
+        const response = await fetch(`${API_URL}/users/${userId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -56,79 +57,97 @@ const NavBar = () => {
   const isAdmin = userData.isAdmin;
 
   return (
-    <div className='bg-customGreen w-full flex flex-col md:flex-row justify-between items-center py-2 px-4'>
-      <div className='flex justify-between w-full md:w-auto'>
-        <Link to="/">
-          <h1 className='text-lg'>NovelWriter</h1>
-        </Link>
-        <button className='md:hidden' onClick={() => setShowMenu(!showMenu)}>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-          </svg>
-        </button>
-      </div>
-      <div className={`flex-col md:flex-row flex md:flex items-center space-y-4 md:space-y-0 md:space-x-4 ${showMenu ? 'block' : 'hidden'} md:block`}>
-        <Link to="/gallery">
-          <p>Gallery</p>
-        </Link> 
-        <p>About</p>
-        <p>Contact Us</p>
-      </div>
-      {user ? (
-        !isAdmin ? (
-          <div className="relative flex items-center mt-4 md:mt-0">
-            <button
-              onClick={toggleDropdown}
-              className="flex items-center space-x-2"
-            >
-              {userDetails?.image_url ? (
-                <img 
-                  src={userDetails.image_url} 
-                  alt="User profile" 
-                  className="w-8 h-8 rounded-full object-cover mr-2"
-                />
-              ) : (
-                <FaUserCircle className="w-8 h-8 text-gray-500" />
-              )}
-            </button>
-            {showDropdown && (
-              <div
-                ref={dropdownRef}
-                className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-10"
-              >
-                <div className="px-4 py-2 border-b border-gray-200 flex items-center">
+    <nav className='bg-customGreen shadow-md'>
+      <div className='max-w-9xl mx-auto sm:px-6 lg:px-8'>
+        <div className='flex justify-between h-16'>
+          <div className='flex items-center'>
+            <Link to="/" className='text-2xl font text-black'>
+              NovelWriter
+            </Link>
+          </div>
+          <div className='hidden md:flex md:items-center md:space-x-4'>
+            <Link to="/gallery" className='text-black hover:bg-gray-400 px-3 py-2 rounded-md text-sm font-medium'>
+              Gallery
+            </Link>
+            <Link to="/about" className='text-black hover:bg-gray-400 px-3 py-2 rounded-md text-sm font-medium'>
+              About
+            </Link>
+            <Link to="/contact" className='text-black hover:bg-gray-400 px-3 py-2 rounded-md text-sm font-medium'>
+              Contact Us
+            </Link>
+          </div>
+          <div className='flex items-center'>
+            {user && !isAdmin ? (
+              <div className="relative ml-3">
+                <button
+                  onClick={toggleDropdown}
+                  className="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition duration-150 ease-in-out"
+                  aria-label="User profile menu"
+                >
                   {userDetails?.image_url ? (
                     <img 
                       src={userDetails.image_url} 
                       alt="User profile" 
-                      className="w-8 h-8 rounded-full object-cover mr-2"
+                      className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (
-                    <FaUserCircle className="w-8 h-8 text-gray-500 mr-2" />
+                    <FaUserCircle className="w-8 h-8 text-gray-500" />
                   )}
-                  <p className="text-sm font-medium">
-                    {userDetails ? userDetails.username : (userData.username || user.username)}
-                  </p>
-                </div>
-                <Link to="/profile" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">
-                  Profile
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full px-4 py-2 text-gray-800 hover:bg-gray-100 text-left"
-                >
-                  Logout
                 </button>
+                {showDropdown && (
+                  <div
+                    ref={dropdownRef}
+                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+                  >
+                    <p className='font-sans py-1 px-2 bg-gray-50'>{userDetails.username}</p>
+                    <hr className="border-t-2 border-gray-300"/>
+
+                    <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      Profile
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
+            ) : !user ? (
+              <Link to="/login" className='text-black bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md text-sm font-medium'>
+                Login
+              </Link>
+            ) : null}
+            <div className='ml-4 md:hidden'>
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className='inline-flex items-center justify-center p-2 rounded-md text-black hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500'
+                aria-label="Menu"
+              >
+                {showMenu ? <FaTimes className="block h-6 w-6" /> : <FaBars className="block h-6 w-6" />}
+              </button>
+            </div>
           </div>
-        ) : null
-      ) : (
-        <Link to="/login" className='mt-4 md:mt-0'>
-          <button className='border border-black rounded px-4 py-2'>Login</button>
-        </Link>
+        </div>
+      </div>
+
+      {showMenu && (
+        <div className='md:hidden'>
+          <div className='px-2 pt-2 pb-3 space-y-1 sm:px-3'>
+            <Link to="/gallery" className='text-black hover:bg-gray-200 block px-3 py-2 rounded-md text-base font-medium'>
+              Gallery
+            </Link>
+            <Link to="/about" className='text-black hover:bg-gray-200 block px-3 py-2 rounded-md text-base font-medium'>
+              About
+            </Link>
+            <Link to="/contact" className='text-black hover:bg-white block px-3 py-2 rounded-md text-base font-medium'>
+              Contact Us
+            </Link>
+          </div>
+        </div>
       )}
-    </div>
+    </nav>
   );
 };
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import ConfirmationDialog from '../ConfirmationDialog';
+import { FaPlus, FaTrash } from 'react-icons/fa';
+import {API_URL} from '../../config'
 
 const ChapterList = ({ onChapterSelect }) => {
   const [chapters, setChapters] = useState([]);
@@ -27,7 +29,7 @@ const ChapterList = ({ onChapterSelect }) => {
 
   const fetchChapters = async (storyId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/chapters/${storyId}`);
+      const response = await axios.get(`${API_URL}/chapters/${storyId}`);
       if (Array.isArray(response.data)) {
         setChapters(response.data);
       } else {
@@ -46,7 +48,7 @@ const ChapterList = ({ onChapterSelect }) => {
   const handleCreateChapter = async () => {
     if (newChapterTitle.trim()) {
       try {
-        const response = await axios.post('http://localhost:5000/api/chapters', {
+        const response = await axios.post(`${API_URL}/chapters`, {
           title: newChapterTitle,
           storyId: storyData._id
         });
@@ -67,7 +69,7 @@ const ChapterList = ({ onChapterSelect }) => {
 
   const handleDeleteChapter = async (chapterId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/chapters/${chapterId}`);
+      await axios.delete(`${API_URL}/chapters/${chapterId}`);
       setChapters(chapters.filter(chapter => chapter._id !== chapterId));
       setOpenDialog(false);
       setError(null);
@@ -88,41 +90,41 @@ const ChapterList = ({ onChapterSelect }) => {
   };
 
   return (
-    <div className="bg-white p-4 shadow-md rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4">Chapters</h2>
+    <div className="h-full flex flex-col">
+      <h2 className="text-xl md:text-2xl font-semibold mb-4 text-gray-800">Chapters</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
-      <div className="mb-4">
+      <div className="mb-4 flex flex-col sm:flex-row items-center gap-2">
         <input
           type="text"
           value={newChapterTitle}
           onChange={(e) => setNewChapterTitle(e.target.value)}
           placeholder="New chapter title"
-          className="w-full p-3 border border-gray-300 rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={handleCreateChapter}
-          className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
+          className="w-full sm:w-auto bg-black text-white p-2 rounded-lg hover:bg-slate-600 transition-colors flex items-center justify-center"
         >
-          Create Chapter
+          <FaPlus className="mr-2" /> Create
         </button>
       </div>
       {chapters.length > 0 ? (
-        <ul className="list-none p-0">
+        <ul className="list-none p-0 flex-grow flex flex-col overflow-y-auto gap-2">
           {chapters.map((chapter) => (
             <li
               key={chapter._id}
               onClick={() => onChapterSelect(chapter)}
-              className="cursor-pointer p-3 mb-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition flex justify-between items-center"
+              className="cursor-pointer p-2 bg-white rounded-lg hover:bg-gray-100 transition-colors flex justify-between items-center"
             >
-              {chapter.title}
+              <span className="text-gray-800 text-sm md:text-base">{chapter.title}</span>
               <button
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent triggering onChapterSelect
+                  e.stopPropagation();
                   openDeleteDialog(chapter);
                 }}
-                className="text-red-600 hover:text-red-800 transition"
+                className="text-red-500 hover:text-red-700 transition-colors"
               >
-                Delete
+                <FaTrash />
               </button>
             </li>
           ))}

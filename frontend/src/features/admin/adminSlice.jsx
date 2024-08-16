@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { fetchUsers, toggleBlockUser } from './adminService';
 import axios from 'axios';
+import {API_URL} from '../../config'
 
 export const fetchUsersThunk = createAsyncThunk('admin/fetchUsers', async () => {
   const users = await fetchUsers();
@@ -13,12 +14,12 @@ export const toggleBlockUserThunk = createAsyncThunk('admin/toggleBlockUser', as
 });
 
 export const fetchStoriesThunk = createAsyncThunk('admin/fetchStories', async () => {
-  const response = await axios.get('http://localhost:5000/api/admin/stories'); 
+  const response = await axios.get(`${API_URL}/admin/stories`); 
   return response.data;
 });
 
 export const toggleBlockStoryThunk = createAsyncThunk('admin/toggleBlockStory', async (storyId) => {
-  const response = await axios.patch(`http://localhost:5000/api/admin/story/${storyId}/block`);
+  const response = await axios.patch(`${API_URL}/admin/story/${storyId}/block`);
   return response.data;
 });
 

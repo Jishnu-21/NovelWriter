@@ -36,7 +36,7 @@ const PageComponent = ({ page, onPageChange }) => {
         placeholder="Page content here..."
       />
       <div>
-        <h3 className="text-lg font-semibold">Choices</h3>
+        <h3 className="text-lg md:pt-7 font-semibold">Choices</h3>
         {page.choices.map((choice, index) => (
           <div key={index} className="flex items-center space-x-2 mt-2">
             <input

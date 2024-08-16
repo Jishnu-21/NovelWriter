@@ -1,25 +1,27 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/admin/genres'; // Update this with your actual API URL
+import {API_URL} from '../../config'
+
+const API_URL2 = '${API_URL}/admin/genres'; // Update this with your actual API URL
 
 export const fetchGenres = createAsyncThunk('genre/fetchGenres', async () => {
-  const response = await axios.get(API_URL);
+  const response = await axios.get(API_URL2);
   return response.data;
 });
 
 export const addGenre = createAsyncThunk('genre/addGenre', async (genreData) => {
-  const response = await axios.post(API_URL, genreData);
+  const response = await axios.post(API_URL2, genreData);
   return response.data;
 });
 
 export const updateGenre = createAsyncThunk('genre/updateGenre', async ({ id, ...genreData }) => {
-  const response = await axios.put(`${API_URL}/${id}`, genreData);
+  const response = await axios.put(`${API_URL2}/${id}`, genreData);
   return response.data;
 });
 
 export const toggleGenreStatus = createAsyncThunk('genre/toggleGenreStatus', async (id) => {
-  const response = await axios.patch(`${API_URL}/${id}/toggle`);
+  const response = await axios.patch(`${API_URL2}/${id}/toggle`);
   return response.data;
 });
 

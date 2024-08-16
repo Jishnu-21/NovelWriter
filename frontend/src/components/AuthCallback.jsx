@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { account } from '../config/appwrite';
 import { setUser } from '../features/auth/authSlice';
 import axios from 'axios';
-
+import {API_URL} from '../../src/config'
 const AuthCallback = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const AuthCallback = () => {
         console.log('Appwrite user:', user);
 
         // Send user data to backend to save it in MongoDB and generate token
-        const response = await axios.post('http://localhost:5000/api/auth/callback', {
+        const response = await axios.post(`${API_URL}/auth/callback`, {
           userId: user.$id,
           username: user.name,
           email: user.email,

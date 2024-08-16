@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaBookOpen } from 'react-icons/fa';
+import {API_URL} from '../../config'
 
 const RecommendedStories = ({ userId }) => {
   const [recommendedStories, setRecommendedStories] = useState([]);
@@ -11,7 +12,7 @@ const RecommendedStories = ({ userId }) => {
     const fetchRecommendedStories = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/story/recommended/${userId}`);
+        const response = await axios.get(`${API_URL}/story/recommended/${userId}`);
         setRecommendedStories(response.data);
         setLoading(false);
       } catch (error) {

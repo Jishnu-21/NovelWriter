@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
+import {API_URL} from '../../config'
 
 const RecommendedBooks = () => {
   const [recommendedBooks, setRecommendedBooks] = useState([]);
@@ -15,7 +16,7 @@ const RecommendedBooks = () => {
         if (!userId) return; // Exit if userId is not available
   
         try {
-          const response = await fetch(`http://localhost:5000/api/users/${userId}`);
+          const response = await fetch(`${API_URL}/users/${userId}`);
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -30,7 +31,7 @@ const RecommendedBooks = () => {
     const fetchRecommendedBooks = async () => {
       if (userDetails && userDetails.interests && userDetails.interests.length > 0) {
         try {
-          const response = await axios.get('http://localhost:5000/api/story/recommended', {
+          const response = await axios.get(`${API_URL}/story/recommended`, {
             params: { interests: userDetails.interests.join(',') },
           });
           setRecommendedBooks(response.data.slice(0, 3)); // Limit to 3 books
