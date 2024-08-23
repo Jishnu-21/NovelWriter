@@ -57,13 +57,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/report', reportRoutes);
 
-// Serve static files from the frontend dist folder
-app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
-
-// Serve index.html for any other routes
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html'));
-});
 
 // Set up socket.io
 setupSocket(server);
