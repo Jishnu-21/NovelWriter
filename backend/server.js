@@ -36,7 +36,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 // Set up Apollo Server
 const startServer = async () => {
     await apolloServer.start();
-    apolloServer.applyMiddleware({ app });
+    apolloServer.applyMiddleware({ app, path: '/graphql' }); // Specify the path here
 
     // Start the HTTP server
     const PORT = process.env.PORT || 5000;
