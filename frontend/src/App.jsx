@@ -18,6 +18,12 @@ import { useDispatch } from 'react-redux';
 import BookDetailPage from './Pages/BookDetailPage';
 import BookReader from './Pages/BookReader';
 import Profile from './Pages/Profile';
+import ContactUs from './Pages/contactUs';
+import AboutUs from './Pages/AboutUs';
+import AuthorProfile from './AuthorProfile';
+import NotificationPage from './Pages/NotificationPage';
+import AIwrting from './Pages/AI/AIwrting';
+import StoryReader from './Pages/AI/StoryReader';
 
 
 function App() {
@@ -35,6 +41,8 @@ function App() {
         <Route path="/register" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/gallery" element={<Gallery />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/about" element={<AboutUs />} />
         <Route 
           path="/writing" 
           element={<ProtectedUserRoute element={<WritingPage />} />} 
@@ -44,6 +52,7 @@ function App() {
           element={<ProtectedUserRoute element={<StartWriting />} />} 
         />
         <Route path="/auth-callback" element={<AuthCallback />} />
+        <Route path="/story-reader" element={<StoryReader />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route
@@ -55,11 +64,14 @@ function App() {
           />
        <Route path="/story/:id" element={<BookDetailPage />} />
        <Route path="/read/:id" element={<BookReader/>} />
+       <Route path="/ai" element={<AIwrting/>} />
        <Route path="/profile"
           element={<ProtectedUserRoute element={<Profile />} />} 
           />
+       <Route path="/author/:userId" element={<AuthorProfile />} />
+       <Route path="/notifications" element={<NotificationPage />} />
 
-      </Routes>
+</Routes>
     </Router>
   );
 }

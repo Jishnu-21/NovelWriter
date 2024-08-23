@@ -24,7 +24,7 @@ const AuthCallback = () => {
         });
 
         console.log('Server response:', response.data);
-
+         console.log(response.data.token)
         // Save the token and user in Redux
         dispatch(setUser(response.data.user));
         localStorage.setItem('token', response.data.token);

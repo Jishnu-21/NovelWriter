@@ -24,25 +24,36 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
+    // Check if user already exists in the database (assuming a User model is available)
     let user = await User.findOne({ email });
 
     if (user) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    // Generate OTP and its expiration time
     const otp = crypto.randomInt(100000, 999999).toString();
-    const otpExpires = Date.now() + 2 * 60 * 1000; 
+    const otpExpires = Date.now() + 2 * 60 * 1000; // OTP expires in 2 minutes
     const userId = uuidv4();
 
-    temporaryStore.set(email, { userId, username, password: await bcrypt.hash(password, 10), otp, otpExpires });
+    // Store user information temporarily
+    temporaryStore.set(email, {
+      userId,
+      username,
+      password: await bcrypt.hash(password, 10), // Hash password
+      otp,
+      otpExpires,
+    });
 
+    // Email options for sending OTP
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
       subject: 'Your OTP for signup',
-      text: `Your OTP is ${otp}. It will expire in 2 minutes.`
+      text: `Your OTP is ${otp}. It will expire in 2 minutes.`,
     };
 
+    // Send OTP email
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.log('Error sending OTP email:', error);
@@ -51,6 +62,7 @@ exports.signup = async (req, res) => {
       console.log('Email sent:', info.response);
     });
 
+    // Respond with success
     res.status(201).json({ message: 'OTP sent to email', email });
   } catch (error) {
     console.error('Error during signup:', error);
@@ -133,25 +145,30 @@ exports.resendOtp = async (req, res) => {
 
     console.log('Resend OTP request received:', { email });
 
+    // Check if the temporary user data exists
     const tempUser = temporaryStore.get(email);
     if (!tempUser) {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Generate a new OTP and set its expiration time
     const otp = crypto.randomInt(100000, 999999).toString();
-    const otpExpires = Date.now() + 1* 60 * 1000; 
+    const otpExpires = Date.now() + 1 * 60 * 1000; // OTP expires in 1 minute
 
+    // Update the temporary user data with the new OTP
     tempUser.otp = otp;
     tempUser.otpExpires = otpExpires;
     temporaryStore.set(email, tempUser);
 
+    // Email options for sending the new OTP
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
       subject: 'Your new OTP for signup',
-      text: `Your new OTP is ${otp}. It will expire in 2 minutes.`
+      text: `Your new OTP is ${otp}. It will expire in 1 minute.`,
     };
 
+    // Send the new OTP via email
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.log('Error sending new OTP email:', error);

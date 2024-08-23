@@ -118,21 +118,17 @@ const StoryEditor = ({ chapter }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md h-full flex flex-col">
-      <header className="px-4 py-2 border-b border-gray-200 sm:px-6 sm:py-4">
-        <h2 className="text-xl font-semibold text-gray-800 sm:text-2xl">{chapter.title}</h2>
-      </header>
-      
       <div className="px-4 py-2 border-b border-gray-200 flex flex-wrap items-center justify-between sm:px-6 sm:py-4">
-        <div className="flex-1 flex flex-wrap items-center overflow-x-auto">
+        <div className="flex-1 flex flex-wrap items-center overflow-x-auto mb-2 sm:mb-0">
           {pages.map((page, index) => (
             <button
               key={page.pageIndex}
               onClick={() => setSelectedPageIndex(index)}
-              className={`mr-2 mb-2 px-2 py-1 rounded-lg transition-colors ${
+              className={`mr-2 mb-2 px-3 py-1 rounded-full transition-colors ${
                 index === selectedPageIndex
                   ? 'bg-blue-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              } text-sm sm:text-base`}
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              } text-sm`}
             >
               Page {page.pageIndex}
             </button>
@@ -140,14 +136,14 @@ const StoryEditor = ({ chapter }) => {
         </div>
         <button
           onClick={handleAddPage}
-          className="ml-2 px-2 py-1 bg-black text-white rounded-lg hover:bg-slate-700 transition-colors flex items-center text-sm sm:text-base"
+          className="px-3 py-1 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors flex items-center text-sm"
         >
-          <FaPlus className="mr-1" /> Add
+          <FaPlus className="mr-1" /> Add Page
         </button>
       </div>
 
       {pages.length > 0 && (
-        <div className="p-2 sm:p-4">
+        <div className="flex-grow overflow-y-auto p-4">
           <PageComponent
             page={pages[selectedPageIndex]}
             onPageChange={updatedPage => handlePageChange(selectedPageIndex, updatedPage)}
@@ -177,7 +173,7 @@ const StoryEditor = ({ chapter }) => {
         </div>
       )}
 
-      <footer className="px-4 py-2 border-t border-gray-200 flex justify-between items-center sm:px-6 sm:py-4">
+      <footer className="px-4 py-3 border-t border-gray-200 flex justify-between items-center">
         <button
           onClick={() => {
             setPageToDelete(selectedPageIndex);
@@ -186,10 +182,10 @@ const StoryEditor = ({ chapter }) => {
           className={`px-3 py-1 rounded-lg flex items-center ${
             pages.length > 1 ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-400 cursor-not-allowed'
           } text-white transition-colors text-sm`}
-          disabled={pages.length <= 1} // Disable delete button if only one page
+          disabled={pages.length <= 1}
         >
           <FaTrash className="mr-1" />
-          Delete
+          Delete Page
         </button>
         <button
           onClick={handleSave}
@@ -200,10 +196,13 @@ const StoryEditor = ({ chapter }) => {
           <FaSave className="mr-1" />
           {saving ? 'Saving...' : 'Save'}
         </button>
-        {error && (
-          <div className="text-red-500 text-sm">{error}</div>
-        )}
       </footer>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4" role="alert">
+          <strong className="font-bold">Error!</strong>
+          <span className="block sm:inline"> {error}</span>
+        </div>
+      )}
     </div>
   );
 };

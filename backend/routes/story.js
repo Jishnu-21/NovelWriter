@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
-const { createStory, getGenres, getUnpublishedStories,deleteStory,publishStory,getPublished,getStory,getStoryByAuthor,getRecommendedStories} = require('../controller/storyController');
+const { createStory, getGenres, getUnpublishedStories,deleteStory,publishStory,getPublished,getStory,getStoryByAuthor,getRecommendedStories,addReview,toggleLike, deleteReview,editReview} = require('../controller/storyController');
+const authenticate = require('../middleware/AuthMiddleware');
 
 router.post('/stories', upload.single('coverPage'), createStory);
 router.get('/genres', getGenres);
@@ -13,4 +14,8 @@ router.get('/:id',getStory);
 router.put('/publish/:id', publishStory);
 router.get('/by-author/:authorId', getStoryByAuthor);
 router.get('/recommended/:userId', getRecommendedStories);
+router.post('/:storyId/review', authenticate, addReview);
+router.post('/:storyId/like',authenticate, toggleLike);
+router.put('/:storyId/review/:reviewId', authenticate, editReview); 
+router.delete('/:storyId/review/:reviewId', authenticate, deleteReview);
 module.exports = router;

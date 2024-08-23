@@ -11,11 +11,11 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [otp, setOtp] = useState('');
-  const [timer, setTimer] = useState(120); 
+  const [timer, setTimer] = useState(120);
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, isLoading, error, otpSent, userId } = useSelector((state) => state.auth);
+  const { user, isLoading, error, otpSent } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (user) {
@@ -43,7 +43,7 @@ const Signup = () => {
     e.preventDefault();
     setPasswordError('');
     
-    // Password strength criteria: at least 8 characters, one uppercase, one lowercase, one digit, and one special character
+    // Password strength criteria
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     
     if (!passwordRegex.test(password)) {
@@ -66,7 +66,7 @@ const Signup = () => {
 
   const handleResendOTP = () => {
     dispatch(resendOTP({ email }));
-    setTimer(120); // Reset timer to 2 minutes
+    setTimer(120); 
   };
 
   const handleGoBack = () => {
@@ -108,14 +108,16 @@ const Signup = () => {
             >
               {isLoading ? "Verifying..." : "Verify OTP"}
             </button>
-            <button
-              type="button"
-              onClick={handleResendOTP}
-              className="w-full p-3 bg-gray-200 text-gray-700 rounded-md text-sm font-semibold mb-2"
-              disabled={timer > 0}
-            >
-              Resend OTP
-            </button>
+            {/* Show Resend OTP button only if timer is up */}
+            {timer <= 0 && (
+              <button
+                type="button"
+                onClick={handleResendOTP}
+                className="w-full p-3 bg-gray-200 text-gray-700 rounded-md text-sm font-semibold mb-2"
+              >
+                Resend OTP
+              </button>
+            )}
             <button
               type="button"
               onClick={handleGoBack}
@@ -147,9 +149,7 @@ const Signup = () => {
       <div className="absolute bottom-4 right-4 text-sm text-gray-600">
         Already have an account? <Link to="/login" className="text-blue-500 hover:underline">Login</Link>
       </div>
-      
-    </> 
-    
+    </>
   );
 };
 

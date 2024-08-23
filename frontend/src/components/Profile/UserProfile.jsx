@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Sidebar from './Sidebar';
-import { FaUserCircle, FaEdit, FaCamera, FaBookOpen, FaTags } from 'react-icons/fa';
+import { FaUserCircle, FaEdit, FaCamera, FaBookOpen, FaTags, FaUserPlus, FaUserTimes } from 'react-icons/fa';
 import GenreModal from './GenreModal';
 import RecommendedStories from './RecommendedStories';
 import axios from 'axios';
-import {API_URL} from '../../config'
+import { API_URL } from '../../config';
+import ChatPopup from './ChatPopup';
+import { io } from 'socket.io-client';
 
 const UserProfile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -18,18 +20,20 @@ const UserProfile = () => {
   const [username, setUsername] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [interests, setInterests] = useState('');
+  const [chatOpen, setChatOpen] = useState(false);
+  const socket = useRef(null); 
 
   const userData = user?.user || {};
   const userId = userData.id || user._id;
 
-  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
         const response = await fetch(`${API_URL}/users/${userId}`);
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const error = await response.json();
+          throw new Error(`HTTP error ${response.status}: ${error.message || response.statusText}`);
         }
         const data = await response.json();
         setUser(data);
@@ -37,7 +41,7 @@ const UserProfile = () => {
         setInterests(data.interests ? data.interests.join(', ') : '');
       } catch (error) {
         console.error('Error fetching user data:', error);
-        setError('Error fetching user data');
+        setError(`Error fetching user data: ${error.message}`);
       } finally {
         setLoading(false);
       }
@@ -47,21 +51,45 @@ const UserProfile = () => {
       try {
         const response = await fetch(`${API_URL}/story/by-author/${userId}`);
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const error = await response.json();
+          throw new Error(`HTTP error ${response.status}: ${error.message || response.statusText}`);
         }
         const data = await response.json();
         setUserStories(data);
       } catch (error) {
         console.error('Error fetching user stories:', error);
-        setError('Error fetching user stories');
+        setError(`Error fetching user stories: ${error.message}`);
       }
     };
 
     if (userId) {
+      socket.current = io(`${API_URL}/chat`, {
+        path: '/seacher',
+        autoConnect: false,
+        transports: ['websocket', 'polling'], // Add 'polling' as a fallback transport
+      });  
+  
+      socket.current.on('connect', () => {
+        console.log('WebSocket connected to the chat namespace');
+      });
+  
+      socket.current.on('connect_error', (error) => {
+        console.error('WebSocket connection error:', error);
+      });
+  
+      socket.current.on('error', (error) => {
+        console.error('WebSocket error:', error);
+      });
+  
       fetchUserData();
       fetchUserStories();
+  
+      return () => {
+        socket.current.disconnect();
+      };
     }
   }, [userId]);
+
 
   const handleEditProfile = async () => {
     const formData = new FormData();
@@ -114,6 +142,36 @@ const UserProfile = () => {
     setIsEditing(false);
     setUsername(userDetails.username);
     setImageFile(null);
+  };
+
+  const handleFollowUser = async () => {
+    try {
+      const response = await axios.post(`${API_URL}/users/follow/${userId}`, {
+        userId: userDetails._id, // ID of the user to follow
+      });
+      setUser(prevState => ({
+        ...prevState,
+        followers: [...prevState.followers, response.data.followerId], // Update followers list
+      }));
+    } catch (error) {
+      console.error('Error following user:', error);
+      alert('Error following user');
+    }
+  };
+
+  const handleUnfollowUser = async () => {
+    try {
+      await axios.post(`${API_URL}/users/unfollow/${userId}`, {
+        userId: userDetails._id, // ID of the user to unfollow
+      });
+      setUser(prevState => ({
+        ...prevState,
+        followers: prevState.followers.filter(id => id !== userDetails._id), // Update followers list
+      }));
+    } catch (error) {
+      console.error('Error unfollowing user:', error);
+      alert('Error unfollowing user');
+    }
   };
 
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
@@ -206,6 +264,27 @@ const UserProfile = () => {
                 <p className="text-gray-700">
                   Interests: {userDetails?.interests?.join(', ') || 'None'}
                 </p>
+                <p className="text-gray-700">
+                  Followers: {userDetails?.followers?.length || 0}
+                </p>
+                <p className="text-gray-700">
+                  Following: {userDetails?.following?.length || 0}
+                
+                </p>
+                {chatOpen && (
+        <ChatPopup
+        className='py-8'
+          socket={socket.current}
+          user={userDetails}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
+      <button
+        className="fixed bottom-4 right-4 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition "
+        onClick={() => setChatOpen(true)}
+      >
+        Chat
+      </button>
               </div>
             )}
           </div>
@@ -233,7 +312,7 @@ const UserProfile = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Add the RecommendedStories component */}
         <RecommendedStories userId={userId} />
       </main>

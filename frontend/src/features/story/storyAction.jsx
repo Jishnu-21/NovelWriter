@@ -73,7 +73,7 @@ export const createStory = createAsyncThunk(
   'stories/createStory',
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('${API_URL}/story/stories', formData, {
+      const response = await axios.post(`${API_URL}/story/stories`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -96,7 +96,7 @@ export const fetchGenres = createAsyncThunk(
   'stories/fetchGenres',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('${API_URL}/story/genres');
+      const response = await axios.get(`${API_URL}/story/genres`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch genres');

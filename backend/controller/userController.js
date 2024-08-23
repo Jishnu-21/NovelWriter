@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const cloudinary = require('../config/cloudinary');
+const Notification = require('../models/Notification');
 
 exports.addInterest = async (req, res) => {
   const { userId } = req.params;
@@ -73,5 +74,78 @@ exports.editUser = async (req, res) => {
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.followUser = async (req, res) => {
+  const { userId, targetUserId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await user.follow(targetUserId);
+
+    const notification = new Notification({
+      userId: targetUserId, // The user being followed
+      message: `${user.username} started following you.`, // Customize the notification message
+      type: 'follow', // You can define the type for easier filtering later
+      createdAt: new Date()
+    });
+
+    res.status(200).json({ message: 'User followed successfully' });
+  } catch (error) {
+    console.error('Error following user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Unfollow a user
+exports.unfollowUser = async (req, res) => {
+  const { userId, targetUserId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await user.unfollow(targetUserId);
+
+    const notification = new Notification({
+      userId: targetUserId, // The user being unfollowed
+      message: `${user.username} unfollowed you.`, // Customize the notification message
+      type: 'unfollow', // Define type for easier filtering later
+      createdAt: new Date()
+    });
+    
+    res.status(200).json({ message: 'User unfollowed successfully' });
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+exports.getNotifications = async (req, res) => {
+  try {
+    const userId = req.user._id; // Use the authenticated user's ID
+    const notifications = await Notification.find({ userId })
+      .populate('storyId', 'name') // Populate the storyId field
+      .populate('userId', 'username') // Populate the userId field to get the username
+      .sort({ createdAt: -1 });
+
+    const formattedNotifications = notifications.map(notification => {
+      return {
+        ...notification._doc,
+        message: `${notification.message}`, 
+      };
+    });
+
+    res.status(200).json({ notifications: formattedNotifications });
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ message: 'Server error', error: error.toString() });
   }
 };

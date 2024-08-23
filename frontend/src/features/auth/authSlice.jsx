@@ -37,9 +37,12 @@ export const resendOTP = createAsyncThunk('auth/resendOTP', async (email, thunkA
     const response = await authService.resendOTP(email);
     return response;
   } catch (error) {
-    return thunkAPI.rejectWithValue(error.response?.data || 'An error occurred');
+    console.error('Resend OTP thunk error:', error);
+    return thunkAPI.rejectWithValue(error.response?.data || error.message || 'An error occurred');
   }
 });
+
+
 export const googleSignIn = createAsyncThunk('auth/googleSignIn', async (_, thunkAPI) => {
   try {
     await authService.googleSignIn();

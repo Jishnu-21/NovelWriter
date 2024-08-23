@@ -1,16 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { useDispatch } from 'react-redux';
 import { googleSignIn } from '../features/auth/authSlice'; // Adjust import path
 
-const InputField = ({ type, placeholder, value, onChange }) => (
-  <input
-    type={type}
-    placeholder={placeholder}
-    value={value}
-    onChange={onChange}
-    className="w-full p-3 mb-4 border border-gray-300 rounded-md text-sm"
-  />
+const InputField = ({ type, placeholder, value, onChange, showPassword, togglePassword }) => (
+  <div className="relative">
+    <input
+      type={type === 'password' && showPassword ? 'text' : type}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      className="w-full p-3 mb-4 border border-gray-300 rounded-md text-sm pr-10"
+    />
+    {type === 'password' && (
+      <button
+        type="button"
+        onClick={togglePassword}
+        className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+      >
+        {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+      </button>
+    )}
+  </div>
 );
 
 const Button = ({ children, onClick, type = "button" }) => (
@@ -31,6 +43,7 @@ const SocialButton = ({ Icon, onClick }) => (
 
 const AuthForm = ({ title, fields, buttonText, additionalContent, onSubmit, error }) => {
   const dispatch = useDispatch();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleGoogleSignIn = () => {
     dispatch(googleSignIn());
@@ -39,6 +52,10 @@ const AuthForm = ({ title, fields, buttonText, additionalContent, onSubmit, erro
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(e);
+  };
+
+  const togglePassword = () => {
+    setShowPassword((prevState) => !prevState);
   };
 
   return (
@@ -61,6 +78,8 @@ const AuthForm = ({ title, fields, buttonText, additionalContent, onSubmit, erro
                 placeholder={field.placeholder}
                 value={field.value}
                 onChange={field.onChange}
+                showPassword={field.type === 'password' && showPassword}
+                togglePassword={togglePassword}
               />
             ))}
             {additionalContent}

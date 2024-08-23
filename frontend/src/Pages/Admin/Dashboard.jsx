@@ -14,14 +14,32 @@ const AdminDashboard = () => {
       <Sidebar setActiveSection={setActiveSection} />
       <div className="flex-1 flex flex-col">
         <TopNavBar />
-        <div className="p-6 flex-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="p-6 flex-1 overflow-y-auto">
+          {/* Section Header */}
+          <h2 className="text-3xl font-semibold mb-4">{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)} Section</h2>
+          <div className="">
+            {/* Content for different sections */}
             {activeSection === 'dashboard' && (
-              <div>Dashboard Content</div>
+              <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
+                <h3 className="text-xl font-bold mb-2">Dashboard Content</h3>
+                <p>Your dashboard overview goes here.</p>
+              </div>
             )}
-            {activeSection === 'genre' && <Genre />}
-            {activeSection === 'users' && <Users />}
-            {activeSection === 'stories' && <Stories />}
+            {activeSection === 'genre' && (
+              <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
+                <Genre />
+              </div>
+            )}
+            {activeSection === 'users' && (
+              <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
+                <Users />
+              </div>
+            )}
+            {activeSection === 'stories' && (
+              <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
+                <Stories />
+              </div>
+            )}
           </div>
         </div>
       </div>

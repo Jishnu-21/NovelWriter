@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Genre = require('../models/Genre');
 const Story = require('../models/Story');
+const Report = require('../models/Report');
 
 exports.getUsers = async (req, res) => {
   try {
@@ -102,3 +103,16 @@ exports.toggleStoryBlock = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+
+exports.getStoryReports = async (req, res) => {
+  try {
+    const { storyId } = req.params;
+    const reports = await Report.find({ storyId }).populate('userId', 'username reason');
+    res.status(200).json(reports);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+

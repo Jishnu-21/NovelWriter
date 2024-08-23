@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchUnpublishedStories } from '../features/story/storyAction';
 
@@ -9,7 +9,6 @@ const Header = () => {
   const { user } = useSelector((state) => state.auth);
   const { unpublished: unpublishedStories, loading, error } = useSelector((state) => state.stories);
 
-  // Determine userId from either Google or email sign-in
   const userId = user?._id || user?.user?.id;
 
   useEffect(() => {
@@ -38,12 +37,19 @@ const Header = () => {
         <p className="text-gray-400 mb-8">
           Join our novel writing community.
         </p>
-        <button
-          onClick={handleStartWriting}
-          className="bg-purple-600 text-white py-3 px-6 rounded-md w-full lg:w-48 hover:bg-purple-700 transition duration-300"
-        >
-          Start Writing Now
-        </button>
+        <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4">
+          <button
+            onClick={handleStartWriting}
+            className="bg-purple-600 text-white py-3 px-6 rounded-md w-full lg:w-auto hover:bg-purple-800 transition duration-300"
+          >
+            Start Writing Now
+          </button>
+          <button className="bg-purple-200 text-black py-3 px-6 rounded-md w-full lg:w-auto hover:bg-purple-500 transition duration-300">
+            <Link to="/ai" className="block w-full h-full">
+              AI Story Experience
+            </Link>
+          </button>
+        </div>
       </div>
 
       {/* Right side */}

@@ -94,7 +94,7 @@ const StoryInfoForm = () => {
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"
           >
             <option value="">Select Genre</option>
-            {genres.length > 0 ? (
+            {Array.isArray(genres) && genres.length > 0 ? (
               genres.map((g) => (
                 <option key={g._id} value={g.name}>{g.name}</option>
               ))

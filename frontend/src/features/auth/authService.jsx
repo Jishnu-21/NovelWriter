@@ -1,20 +1,30 @@
 import axios from 'axios';
-import { account } from '../../config/appwrite' // Import your Appwrite config
-import {API_URL} from '../../config'
+import { account } from '../../config/appwrite'; // Import your Appwrite config
+import { API_URL } from '../../config';
 
-const API_URL2 = '${API_URL}/auth/';
+const API_URL2 = `${API_URL}/auth`;
 
 const signup = async (userData) => {
-  const response = await axios.post(API_URL + 'signup', userData);
-  return response.data;
+  try {
+    const response = await axios.post(`${API_URL2}/signup`, userData);
+    return response.data;
+  } catch (error) {
+    console.error('Signup error:', error);
+    throw error;
+  }
 };
 
 const verifyOTP = async ({ email, otp }) => {
-  const response = await axios.post(API_URL2 + 'verify-otp', { email, otp });
-  if (response.data) {
-    localStorage.setItem('user', JSON.stringify(response.data));
+  try {
+    const response = await axios.post(`${API_URL2}/verify-otp`, { email, otp });
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
+    return response.data;
+  } catch (error) {
+    console.error('Verify OTP error:', error);
+    throw error;
   }
-  return response.data;
 };
 
 const googleSignIn = async () => {
@@ -26,42 +36,69 @@ const googleSignIn = async () => {
   }
 };
 
-
 const forgotPassword = async (email) => {
-  const response = await axios.post(API_URL2 + 'forgot-password', { email });
-  return response.data;
+  try {
+    const response = await axios.post(`${API_URL2}/forgot-password`, { email });
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
+    return response.data;
+  } catch (error) {
+    console.error('Forgot Password error:', error);
+    throw error;
+  }
 };
 
 const resetPassword = async (data) => {
-  const response = await axios.post(`${API_URL2}reset-password`, data);
-  return response.data;
+  try {
+    const response = await axios.post(`${API_URL2}/reset-password`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Reset Password error:', error);
+    throw error;
+  }
 };
-
 
 const logout = () => {
   localStorage.removeItem('user');
 };
 
 const login = async (userData) => {
-  const response = await axios.post(API_URL2 + 'login', userData);
-  if (response.data) {
-    localStorage.setItem('user', JSON.stringify(response.data));
+  try {
+    const response = await axios.post(`${API_URL2}/login`, userData);
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
+    return response.data;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
   }
-  return response.data;
 };
 
 const adminLogin = async (adminData) => {
-  const response = await axios.post(API_URL2 + 'admin-login', adminData);
-  if (response.data) {
-    localStorage.setItem('user', JSON.stringify({ ...response.data, isAdmin: true }));
+  try {
+    const response = await axios.post(`${API_URL2}/admin-login`, adminData);
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify({ ...response.data, isAdmin: true }));
+    }
+    return response.data;
+  } catch (error) {
+    console.error('Admin Login error:', error);
+    throw error;
   }
-  return response.data;
 };
 
-
 const resendOTP = async (email) => {
-  const response = await axios.post(API_URL2 + 'resend-otp', { email });
-  return response.data;
+  try {
+    console.log('Sending resend OTP request to:', `${API_URL2}/resend-otp`);
+    const response = await axios.post(`${API_URL2}/resend-otp`, { email });
+    console.log('Resend OTP response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Resend OTP error:', error.response || error);
+    throw error;
+  }
 };
 
 const authService = {

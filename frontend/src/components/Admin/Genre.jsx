@@ -1,22 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchGenres, addGenre, updateGenre, toggleGenreStatus } from '../../features/admin/GenreSlice';
+import axios from 'axios';
 import ConfirmationDialog from '../ConfirmationDialog';
 import EditGenreDialog from './EditGenreDialog';
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { API_URL } from '../../config';
+
+const API_URL2 = `${API_URL}/admin/genres`; // Replace with your actual API URL
 
 const Genre = () => {
-  const dispatch = useDispatch();
-  const { genres, status, error } = useSelector((state) => state.genre);
-
+  const [genres, setGenres] = useState([]);
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
 
   useEffect(() => {
-    dispatch(fetchGenres());
-  }, [dispatch]);
+    const fetchGenres = async () => {
+      setStatus('loading');
+      try {
+        const response = await axios.get(API_URL2);
+        setGenres(response.data);
+        setStatus('succeeded');
+      } catch (err) {
+        setError(err.message);
+        setStatus('failed');
+      }
+    };
+
+    fetchGenres();
+  }, []);
 
   const handleAddGenre = () => {
     setSelectedGenre(null);
@@ -30,8 +44,17 @@ const Genre = () => {
 
   const handleToggleGenreStatus = (genre) => {
     setSelectedGenre(genre);
-    setConfirmAction(() => () => dispatch(toggleGenreStatus(genre._id)));
+    setConfirmAction(() => () => toggleGenreStatus(genre._id));
     setConfirmDialogOpen(true);
+  };
+
+  const toggleGenreStatus = async (id) => {
+    try {
+      await axios.patch(`${API_URL2}/${id}/toggle`);
+      fetchGenres(); // Refetch genres after status change
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const handleConfirmAction = () => {
@@ -39,11 +62,16 @@ const Genre = () => {
     setConfirmDialogOpen(false);
   };
 
-  const handleSaveGenre = (genreData) => {
-    if (selectedGenre) {
-      dispatch(updateGenre({ id: selectedGenre._id, ...genreData }));
-    } else {
-      dispatch(addGenre(genreData));
+  const handleSaveGenre = async (genreData) => {
+    try {
+      if (selectedGenre) {
+        await axios.put(`${API_URL2}/${selectedGenre._id}`, genreData);
+      } else {
+        await axios.post(API_URL2, genreData);
+      }
+      fetchGenres(); // Refetch genres after saving
+    } catch (err) {
+      setError(err.message);
     }
     setEditDialogOpen(false);
   };

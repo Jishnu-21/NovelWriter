@@ -24,11 +24,15 @@ const Login = () => {
     };
   }, [user, navigate, dispatch]);
 
-  useEffect(() => {
+ useEffect(() => {
     if (error) {
       setLoginError(error);
+      if (error.includes('account')) {
+        alert('Your account has been blocked. Please contact support for assistance.');
+      }
     }
   }, [error]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
