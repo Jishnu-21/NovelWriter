@@ -4,7 +4,7 @@ const Chat = require('../models/Chat');
 const setupSocket = (server) => {
     const io = socketIo(server, {
         cors: {
-            origin: 'http://localhost:5173',
+            origin: 'https://novelwriter-2.onrender.com',
             methods: ['GET', 'POST'],
             credentials: true,
         },
