@@ -125,7 +125,6 @@ const AIWriting = () => {
 
     try {
       const { data } = await sendMessage({ variables: { messages } });
-      // Instead of setting state, navigate to the StoryReader component
       navigate('/story-reader', { state: { initialContent: data.sendMessage.content, characters, outline, genre } });
     } catch (error) {
       console.error('Error generating story:', error);
