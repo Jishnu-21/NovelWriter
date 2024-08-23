@@ -29,7 +29,7 @@ const verifyOTP = async ({ email, otp }) => {
 
 const googleSignIn = async () => {
   try {
-    await account.createOAuth2Session('google', 'http://localhost:5173/auth-callback');
+    await account.createOAuth2Session('google', 'https://novelwriter-2.onrender.com/auth-callback');
   } catch (error) {
     console.error('Google Sign-In error:', error);
     throw error;
