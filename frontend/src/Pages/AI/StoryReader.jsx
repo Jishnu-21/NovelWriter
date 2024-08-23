@@ -64,9 +64,8 @@ const StoryReader = () => {
       const newContent = data.sendMessage.content;
       setStoryParts([...storyParts, newContent]);
 
-      // Check if the new content indicates the end of the story
       if (newContent.toLowerCase().includes('the end')) {
-        setShowContinueButton(false); // Optionally hide the continue button here
+        setShowContinueButton(false); 
       }
 
       setCurrentPartIndex(storyParts.length);
