@@ -241,7 +241,7 @@ exports.forgotPassword = async (req, res) => {
     user.resetTokenExpires = resetTokenExpires;
     await user.save();
 
-    const resetUrl = `http://localhost:5173/reset-password?token=${resetToken}`;
+    const resetUrl = `https://novelwriter-2.onrender.com/reset-password?token=${resetToken}`;
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
