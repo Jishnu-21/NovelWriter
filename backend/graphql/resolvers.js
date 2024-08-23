@@ -18,7 +18,7 @@ const resolvers = {
                     messages: messages,
                     model: 'llama3-70b-8192',
                     temperature: 0.7,
-                    max_tokens: 750,
+                    max_tokens: 200,
                     top_p: 1,
                     stream: false,
                     stop: null,
