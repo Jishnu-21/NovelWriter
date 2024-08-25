@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { gql, useMutation } from '@apollo/client';
 import {
   Box,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Typography,
+  CircularProgress,
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { Client } from "@gradio/client";
 
 const SEND_MESSAGE = gql`
   mutation SendMessage($messages: [MessageInput!]!) {
@@ -28,118 +27,138 @@ const StoryReader = () => {
 
   const [storyParts, setStoryParts] = useState([initialContent]);
   const [currentPartIndex, setCurrentPartIndex] = useState(0);
-  const [showBackButton, setShowBackButton] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [userInput, setUserInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [imageUrls, setImageUrls] = useState([]);
 
   const [sendMessage] = useMutation(SEND_MESSAGE);
+  const MAX_PAGES = 12; // Set the maximum number of pages for the story
 
   const handleBackButtonClick = () => {
     navigate(-1);
   };
 
-  const handleOverlayClick = (direction) => {
-    if (direction === 'next' && currentPartIndex < storyParts.length - 1) {
-      setCurrentPartIndex(currentPartIndex + 1);
-    } else if (direction === 'prev' && currentPartIndex > 0) {
-      setCurrentPartIndex(currentPartIndex - 1);
+  const handleContinueStory = async () => {
+    // Check if the story has reached the maximum number of pages
+    if (storyParts.length >= MAX_PAGES) {
+      return;
     }
-  };
 
-  const handleContinueStory = async (input = '') => {
     setIsGenerating(true);
-    setOpenDialog(false);
 
     const messages = [
       { role: 'user', content: `Characters: ${JSON.stringify(characters)}` },
       { role: 'user', content: `Basic Outline: ${outline}` },
       { role: 'user', content: `Genre: ${genre}` },
       ...storyParts.map(part => ({ role: 'assistant', content: part })),
-      { role: 'user', content: input || 'Continue the story. Keep it brief and end with a cliffhanger or a point where the user can make a decision.' },
+      { role: 'user', content: 'Continue the story. Keep it brief.' },
     ];
 
     try {
       const { data } = await sendMessage({ variables: { messages } });
       const newContent = data.sendMessage.content;
-      setStoryParts([...storyParts, newContent]);
 
-      if (newContent.toLowerCase().includes('the end')) {
-        setShowContinueButton(false); 
+      // Update story parts and image URLs
+      setStoryParts(prevParts => [...prevParts, newContent]);
+
+      // Generate image based on the new content
+      const client = await Client.connect("black-forest-labs/FLUX.1-schnell");
+      const result = await client.predict("/infer", {
+        prompt: newContent,
+        seed: 0,
+        randomize_seed: true,
+        width: 1280,
+        height: 720,
+        num_inference_steps: 1,
+      });
+
+      if (result && result.data && result.data[0] && result.data[0].url) {
+        setImageUrls(prevUrls => [...prevUrls, result.data[0].url]);
       }
 
-      setCurrentPartIndex(storyParts.length);
+      setCurrentPartIndex(prevIndex => prevIndex + 1);
     } catch (error) {
       console.error('Error continuing story:', error);
     } finally {
       setIsGenerating(false);
-      setUserInput('');
     }
   };
 
+  const handleGoBack = () => {
+    if (currentPartIndex > 0) {
+      setCurrentPartIndex(currentPartIndex - 1);
+    }
+  };
+
+  useEffect(() => {
+    // Generate image for the initial content
+    const generateInitialImage = async () => {
+      const client = await Client.connect("black-forest-labs/FLUX.1-schnell");
+      const result = await client.predict("/infer", {
+        prompt: initialContent,
+        seed: 0,
+        randomize_seed: true,
+        width: 1280,
+        height: 720,
+        num_inference_steps: 2,
+      });
+
+      if (result && result.data && result.data[0] && result.data[0].url) {
+        setImageUrls([result.data[0].url]);
+      }
+    };
+
+    generateInitialImage();
+  }, [initialContent]);
+
   return (
-    <div 
-      className="w-full h-screen flex flex-col bg-gray-100 relative"
-      onMouseEnter={() => setShowBackButton(true)}
-      onMouseLeave={() => setShowBackButton(false)}
-    >
-      {showBackButton && (
-        <div 
-          className="absolute top-4 right-4 bg-gray-100 rounded-full p-2 cursor-pointer hover:bg-gray-200 transition-colors duration-200 z-50"
-          onClick={handleBackButtonClick}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5 5-5m6 10l5-5-5-5" />
-          </svg>
-        </div>
-      )}
-      <div className="flex-1 flex items-center justify-center relative">
-        <div 
-          className="absolute inset-y-0 left-0 w-1/4 bg-transparent cursor-pointer" 
-          onClick={() => handleOverlayClick('prev')}
-        />
-        <div 
-          className="absolute inset-y-0 right-0 w-1/4 bg-transparent cursor-pointer" 
-          onClick={() => handleOverlayClick('next')}
-        />
-        <div className="w-full max-w-4xl p-6 bg-white shadow-lg rounded-lg">
-          <div className="overflow-y-auto">
-            <Typography variant="body1" component="div" sx={{ whiteSpace: 'pre-wrap', mb: 2 }}>
-              {storyParts[currentPartIndex]}
-            </Typography>
-            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+    <div className="w-full min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8 lg:p-10">
+      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="p-4 sm:p-6 md:p-8">
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={handleBackButtonClick}
+            className="mb-4"
+          >
+            Back to Home
+          </Button>
+
+          {/* Display the generated image */}
+          {imageUrls[currentPartIndex] && (
+            <img 
+              src={imageUrls[currentPartIndex]} 
+              alt={`Generated for part ${currentPartIndex + 1}`} 
+              className="w-full h-64 sm:h-80 md:h-96 object-cover rounded mb-4"
+            />
+          )}
+          
+          <Typography variant="body1" component="div" className="prose max-w-none mb-6">
+            {storyParts[currentPartIndex]}
+          </Typography>
+
+          <div className="flex justify-between items-center">
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={handleGoBack}
+              disabled={currentPartIndex === 0}
+            >
+              Previous
+            </Button>
+
+            {/* Only show the continue button if the story hasn't reached the maximum pages */}
+            {storyParts.length < MAX_PAGES && (
               <Button
-                variant="outlined"
+                endIcon={isGenerating ? <CircularProgress size={20} /> : <ArrowForwardIcon />}
+                variant="contained"
                 color="primary"
-                onClick={() => setOpenDialog(true)}
+                onClick={handleContinueStory}
                 disabled={isGenerating}
               >
-                Provide Input
+                {isGenerating ? 'Generating...' : 'Continue Story'}
               </Button>
-            </Box>
+            )}
           </div>
         </div>
       </div>
-
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Provide Input for the Next Part</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Your input"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button onClick={() => handleContinueStory(userInput)}>Submit</Button>
-        </DialogActions>
-      </Dialog>
     </div>
   );
 };
