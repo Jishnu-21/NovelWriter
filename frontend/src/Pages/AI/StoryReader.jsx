@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { gql, useMutation } from '@apollo/client';
 import {
-  Box,
   Button,
   Typography,
   CircularProgress,
@@ -31,14 +30,13 @@ const StoryReader = () => {
   const [imageUrls, setImageUrls] = useState([]);
 
   const [sendMessage] = useMutation(SEND_MESSAGE);
-  const MAX_PAGES = 12; // Set the maximum number of pages for the story
+  const MAX_PAGES = 12;
 
   const handleBackButtonClick = () => {
     navigate(-1);
   };
 
   const handleContinueStory = async () => {
-    // Check if the story has reached the maximum number of pages
     if (storyParts.length >= MAX_PAGES) {
       return;
     }
@@ -50,17 +48,15 @@ const StoryReader = () => {
       { role: 'user', content: `Basic Outline: ${outline}` },
       { role: 'user', content: `Genre: ${genre}` },
       ...storyParts.map(part => ({ role: 'assistant', content: part })),
-      { role: 'user', content: 'Continue the story. Keep it brief.' },
+      { role: 'user', content: 'Continue the story. Write a complete page that ends at a natural break point. Use vivid descriptions and engaging dialogue to bring the story to life.' },
     ];
 
     try {
       const { data } = await sendMessage({ variables: { messages } });
       const newContent = data.sendMessage.content;
 
-      // Update story parts and image URLs
       setStoryParts(prevParts => [...prevParts, newContent]);
 
-      // Generate image based on the new content
       const client = await Client.connect("black-forest-labs/FLUX.1-schnell");
       const result = await client.predict("/infer", {
         prompt: newContent,
@@ -68,7 +64,7 @@ const StoryReader = () => {
         randomize_seed: true,
         width: 1280,
         height: 720,
-        num_inference_steps: 1,
+        num_inference_steps: 2,
       });
 
       if (result && result.data && result.data[0] && result.data[0].url) {
@@ -89,8 +85,15 @@ const StoryReader = () => {
     }
   };
 
+  const handleGoForward = () => {
+    if (currentPartIndex < storyParts.length - 1) {
+      setCurrentPartIndex(currentPartIndex + 1);
+    } else if (currentPartIndex === storyParts.length - 1 && storyParts.length < MAX_PAGES) {
+      handleContinueStory();
+    }
+  };
+
   useEffect(() => {
-    // Generate image for the initial content
     const generateInitialImage = async () => {
       const client = await Client.connect("black-forest-labs/FLUX.1-schnell");
       const result = await client.predict("/infer", {
@@ -122,7 +125,6 @@ const StoryReader = () => {
             Back to Home
           </Button>
 
-          {/* Display the generated image */}
           {imageUrls[currentPartIndex] && (
             <img 
               src={imageUrls[currentPartIndex]} 
@@ -144,18 +146,15 @@ const StoryReader = () => {
               Previous
             </Button>
 
-            {/* Only show the continue button if the story hasn't reached the maximum pages */}
-            {storyParts.length < MAX_PAGES && (
-              <Button
-                endIcon={isGenerating ? <CircularProgress size={20} /> : <ArrowForwardIcon />}
-                variant="contained"
-                color="primary"
-                onClick={handleContinueStory}
-                disabled={isGenerating}
-              >
-                {isGenerating ? 'Generating...' : 'Continue Story'}
-              </Button>
-            )}
+            <Button
+              endIcon={isGenerating ? <CircularProgress size={20} /> : <ArrowForwardIcon />}
+              variant="contained"
+              color="primary"
+              onClick={handleGoForward}
+              disabled={isGenerating || (currentPartIndex === storyParts.length - 1 && storyParts.length >= MAX_PAGES)}
+            >
+              {isGenerating ? 'Generating...' : (currentPartIndex < storyParts.length - 1 ? 'Next' : 'Continue Story')}
+            </Button>
           </div>
         </div>
       </div>
