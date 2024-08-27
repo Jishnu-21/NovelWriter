@@ -17,12 +17,17 @@ import {
   Tab,
   Grid,
   CircularProgress,
+  useMediaQuery,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { useTheme } from '@mui/material/styles';
 import NavBar from '../../components/NavBar';
 import Footer from '../../components/Footer';
 
-// GraphQL mutation
 const SEND_MESSAGE = gql`
   mutation SendMessage($messages: [MessageInput!]!) {
     sendMessage(messages: $messages) {
@@ -32,18 +37,22 @@ const SEND_MESSAGE = gql`
   }
 `;
 
-// CharacterButton Component
 const CharacterButton = ({ character, onClick }) => (
   <Button
     variant="contained"
     onClick={onClick}
-    sx={{ mb: 1, width: '100%', bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
+    sx={{
+      mb: 1,
+      width: '100%',
+      bgcolor: 'primary.main',
+      '&:hover': { bgcolor: 'primary.dark' },
+      textOverflow: 'ellipsis',
+    }}
   >
     {character.name || 'Unnamed Character'}
   </Button>
 );
 
-// CharacterDialog Component
 const CharacterDialog = ({ open, character, onClose, onUpdate, onDelete }) => (
   <Dialog open={open} onClose={onClose} PaperProps={{ sx: { padding: 2, borderRadius: 2 } }}>
     <DialogTitle>{character.name || 'Character Details'}</DialogTitle>
@@ -77,9 +86,14 @@ const CharacterDialog = ({ open, character, onClose, onUpdate, onDelete }) => (
   </Dialog>
 );
 
-const genres = ['Fantasy', 'Sci-Fi', 'Mystery', 'Romance', 'Horror', 'Adventure'];
+const genres = ['Fantasy', 'Sci-Fi', 'Mystery', 'Romance', 'Horror', 'Adventure', 'Action'];
+const imageStyles = ['Realism', 'Anime', 'Cartoon', 'Abstract', 'Watercolor'];
 
 const AIWriting = () => {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMediumScreen = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+
   const navigate = useNavigate();
   const [characters, setCharacters] = useState([]);
   const [selectedCharacter, setSelectedCharacter] = useState(null);
@@ -87,6 +101,7 @@ const AIWriting = () => {
   const [error, setError] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [genre, setGenre] = useState(0);
+  const [imageStyle, setImageStyle] = useState('');
 
   const [sendMessage] = useMutation(SEND_MESSAGE);
 
@@ -116,6 +131,12 @@ const AIWriting = () => {
       return;
     }
 
+    if (!imageStyle) {
+      setError('Please select an image style.');
+      setIsGenerating(false);
+      return;
+    }
+
     const messages = [
       { role: 'user', content: `Characters: ${JSON.stringify(characters)}` },
       { role: 'user', content: `Basic Outline: ${outline}` },
@@ -125,7 +146,15 @@ const AIWriting = () => {
 
     try {
       const { data } = await sendMessage({ variables: { messages } });
-      navigate('/story-reader', { state: { initialContent: data.sendMessage.content, characters, outline, genre } });
+      navigate('/story-reader', { 
+        state: { 
+          initialContent: data.sendMessage.content, 
+          characters, 
+          outline, 
+          genre: genres[genre],
+          imageStyle 
+        } 
+      });
     } catch (error) {
       console.error('Error generating story:', error);
       setError('An error occurred while generating the story. Please try again.');
@@ -138,12 +167,12 @@ const AIWriting = () => {
     <Box display="flex" flexDirection="column" minHeight="100vh">
       <NavBar />
       <Container component="main" maxWidth="md" sx={{ flexGrow: 1, mb: 4, mt: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant={isSmallScreen ? "h5" : "h4"} component="h1" gutterBottom>
           Interactive AI Story Generator
         </Typography>
         <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
           <form onSubmit={handleSubmit}>
-            <Typography variant="h5" component="h2" gutterBottom>
+            <Typography variant={isSmallScreen ? "h6" : "h5"} component="h2" gutterBottom>
               Genre
             </Typography>
             <Tabs
@@ -158,10 +187,27 @@ const AIWriting = () => {
               ))}
             </Tabs>
 
-            <Typography variant="h5" component="h2" gutterBottom>
+            <Typography variant={isSmallScreen ? "h6" : "h5"} component="h2" gutterBottom>
+              Image Style
+            </Typography>
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel id="image-style-label">Select Image Style</InputLabel>
+              <Select
+                labelId="image-style-label"
+                value={imageStyle}
+                onChange={(e) => setImageStyle(e.target.value)}
+                label="Select Image Style"
+              >
+                {imageStyles.map((style) => (
+                  <MenuItem key={style} value={style}>{style}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Typography variant={isSmallScreen ? "h6" : "h5"} component="h2" gutterBottom>
               Characters
             </Typography>
-            <Grid container spacing={2}>
+            <Grid container spacing={isSmallScreen ? 1 : 2}>
               {characters.map((character, index) => (
                 <Grid item xs={12} sm={6} md={4} key={index}>
                   <CharacterButton
@@ -176,12 +222,15 @@ const AIWriting = () => {
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={addCharacter}
+                sx={{
+                  width: isSmallScreen || isMediumScreen ? '100%' : 'auto',
+                }}
               >
                 Add Character
               </Button>
             </Box>
 
-            <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 4 }}>
+            <Typography variant={isSmallScreen ? "h6" : "h5"} component="h2" gutterBottom sx={{ mt: 4 }}>
               Basic Outline
             </Typography>
             <TextField
@@ -199,7 +248,7 @@ const AIWriting = () => {
               color="primary"
               size="large"
               disabled={isGenerating}
-              sx={{ position: 'relative' }}
+              sx={{ position: 'relative', width: isSmallScreen || isMediumScreen ? '100%' : 'auto' }}
             >
               {isGenerating ? <CircularProgress size={24} sx={{ position: 'absolute' }} /> : 'Start Story'}
             </Button>
