@@ -22,12 +22,13 @@ const SEND_MESSAGE = gql`
 const StoryReader = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { initialContent, characters, outline, genre } = location.state || {};
+  const { initialContent, characters, outline, genre, imageStyle } = location.state || {};
 
   const [storyParts, setStoryParts] = useState([initialContent]);
   const [currentPartIndex, setCurrentPartIndex] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrls, setImageUrls] = useState([]);
+  const [isInitialImageGenerated, setIsInitialImageGenerated] = useState(false);
 
   const [sendMessage] = useMutation(SEND_MESSAGE);
   const MAX_PAGES = 12;
@@ -36,13 +37,30 @@ const StoryReader = () => {
     navigate(-1);
   };
 
+  const generateImage = async (content) => {
+    const client = await Client.connect("black-forest-labs/FLUX.1-schnell");
+    const result = await client.predict("/infer", {
+      prompt: `${imageStyle} style illustration of: ${content}`,
+      seed: 0,
+      randomize_seed: true,
+      width: 1280,
+      height: 720,
+      num_inference_steps: 4,
+    });
+
+    if (result && result.data && result.data[0] && result.data[0].url) {
+      return result.data[0].url;
+    }
+    return null;
+  };
+
   const handleContinueStory = async () => {
     if (storyParts.length >= MAX_PAGES) {
       return;
     }
-
+  
     setIsGenerating(true);
-
+  
     const messages = [
       { role: 'user', content: `Characters: ${JSON.stringify(characters)}` },
       { role: 'user', content: `Basic Outline: ${outline}` },
@@ -50,27 +68,18 @@ const StoryReader = () => {
       ...storyParts.map(part => ({ role: 'assistant', content: part })),
       { role: 'user', content: 'Continue the story. Write a complete page that ends at a natural break point. Use vivid descriptions and engaging dialogue to bring the story to life.' },
     ];
-
+  
     try {
       const { data } = await sendMessage({ variables: { messages } });
       const newContent = data.sendMessage.content;
-
+  
       setStoryParts(prevParts => [...prevParts, newContent]);
-
-      const client = await Client.connect("black-forest-labs/FLUX.1-schnell");
-      const result = await client.predict("/infer", {
-        prompt: newContent,
-        seed: 0,
-        randomize_seed: true,
-        width: 1280,
-        height: 720,
-        num_inference_steps: 2,
-      });
-
-      if (result && result.data && result.data[0] && result.data[0].url) {
-        setImageUrls(prevUrls => [...prevUrls, result.data[0].url]);
+  
+      const newImageUrl = await generateImage(newContent);
+      if (newImageUrl) {
+        setImageUrls(prevUrls => [...prevUrls, newImageUrl]);
       }
-
+  
       setCurrentPartIndex(prevIndex => prevIndex + 1);
     } catch (error) {
       console.error('Error continuing story:', error);
@@ -95,23 +104,18 @@ const StoryReader = () => {
 
   useEffect(() => {
     const generateInitialImage = async () => {
-      const client = await Client.connect("black-forest-labs/FLUX.1-schnell");
-      const result = await client.predict("/infer", {
-        prompt: initialContent,
-        seed: 0,
-        randomize_seed: true,
-        width: 1280,
-        height: 720,
-        num_inference_steps: 2,
-      });
-
-      if (result && result.data && result.data[0] && result.data[0].url) {
-        setImageUrls([result.data[0].url]);
+      if (!isInitialImageGenerated && imageUrls.length === 0) {
+        const initialImageUrl = await generateImage(initialContent);
+        if (initialImageUrl) {
+          setImageUrls([initialImageUrl]);
+          setIsInitialImageGenerated(true);
+        }
       }
     };
-
+  
     generateInitialImage();
-  }, [initialContent]);
+  }, []); // No dependencies to ensure it only runs once
+  
 
   return (
     <div className="w-full min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8 lg:p-10">
@@ -128,7 +132,7 @@ const StoryReader = () => {
           {imageUrls[currentPartIndex] && (
             <img 
               src={imageUrls[currentPartIndex]} 
-              alt={`Generated for part ${currentPartIndex + 1}`} 
+              alt={`Generated ${imageStyle} style illustration for part ${currentPartIndex + 1}`} 
               className="w-full h-64 sm:h-80 md:h-96 object-cover rounded mb-4"
             />
           )}
