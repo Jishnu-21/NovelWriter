@@ -1,1 +1,1 @@
-export const API_URL = 'https://novelwriter.onrender.com/api';
+export const API_URL = 'https://novelwriter.zapto.org/api';
