@@ -44,6 +44,10 @@ const ReviewForm = ({ onSubmit, userRating, setUserRating, userReview, setUserRe
   </form>
 );
 
+
+
+
+
 const ReviewList = ({ reviews }) => (
   <div>
     {reviews.length === 0 ? ( // Check if there are no reviews
@@ -115,7 +119,7 @@ const BookDetailPage = () => {
     e.preventDefault();
     
     if (!currentUserId) {
-      return; // Do nothing if the user is not logged in
+      return; 
     }
     
     navigate(story.author._id === currentUserId ? '/profile' : `/author/${story.author._id}`);
@@ -135,6 +139,24 @@ const BookDetailPage = () => {
       }));
     } catch (error) {
       console.error('Error toggling like:', error.response.data.message); // Log the error message for better insights
+    }
+  };
+
+  const handleRead = async () => {
+    // Create or update the reading history
+    try {
+      
+      if(currentUserId){
+      await axios.put(`${API_URL}/reading-history/${currentUserId}`, {
+        bookId: id,
+        title: story.name,
+      });
+    }
+
+      // Navigate to the book detail page
+      navigate(`/read/${id}`);
+    } catch (error) {
+      console.error('Error updating reading history:', error);
     }
   };
 
@@ -275,7 +297,7 @@ const handleDeleteClick = async (reviewId) => {
                 <p className="text-gray-700">{story.description}</p>
                 <div className="mt-6 flex items-center">
                   <button
-                    onClick={() => navigate(`/read/${id}`)}
+                    onClick={handleRead}
                     className="bg-indigo-500 text-white px-4 py-2 rounded-full hover:bg-indigo-600 transition duration-300"
                   >
                     Read Story
@@ -368,7 +390,6 @@ const handleDeleteClick = async (reviewId) => {
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 };

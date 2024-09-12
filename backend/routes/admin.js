@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getUsers, toggleUserBlock, getGenres, createGenre, updateGenre, toggleGenre,getStories, toggleStoryBlock,getStoryReports } = require('../controller/adminController');
+const { getUsers, toggleUserBlock, getGenres, createGenre, updateGenre, toggleGenre,getStories, toggleStoryBlock,getStoryReports, getUserCount, getStoryCount } = require('../controller/adminController');
 
 router.get('/users', getUsers);
 router.get('/stories', getStories);
@@ -11,5 +11,6 @@ router.post('/genres', createGenre);
 router.put('/genres/:id', updateGenre);
 router.patch('/genres/:id/toggle', toggleGenre);
 router.get('/reports/:storyId', getStoryReports);
-
+router.get('/users/count', getUserCount);
+router.get('/stories/count', getStoryCount);
 module.exports = router;

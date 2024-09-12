@@ -7,8 +7,9 @@ import { useSelector } from 'react-redux';
 import { API_URL } from './config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
-import ChatPopup from './components/Profile/ChatPopup'; 
+import ChatPopup from './components/Profile/ChatPopup';
 import { io } from 'socket.io-client';
+import { subscribeToUserChannel } from './app/pusher';
 
 const AuthorProfile = () => {
   const { userId } = useParams();
@@ -18,24 +19,21 @@ const AuthorProfile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [authorStories, setAuthorStories] = useState([]);
   const { user } = useSelector((state) => state.auth);
-
-  const userData = user?.user || user;
   
+  const userData = user?.user || user;
   const currentUserId = userData.id || user?._id;
-  const [chatOpen, setChatOpen] = useState(false); 
-  const socket = useRef(null); 
-
-  console.log(userData)
+  const [chatOpen, setChatOpen] = useState(false);
+  const socket = useRef(null);
 
   useEffect(() => {
     const fetchAuthorProfile = async () => {
       try {
         const response = await axios.get(`${API_URL}/users/${userId}`);
         setAuthor(response.data);
-        setLoading(false);
         setIsFollowing(response.data.followers.some(follower => follower.userId === currentUserId));
       } catch (err) {
         setError(err.response?.data?.message || 'An error occurred');
+      } finally {
         setLoading(false);
       }
     };
@@ -50,37 +48,20 @@ const AuthorProfile = () => {
     };
 
     if (userId) {
-      if (isFollowing) {
-        socket.current = io(`${API_URL}/chat`, {
-          path: '/seacher', // Ensure this matches the server
-          autoConnect: false,
-          transports: ['websocket', 'polling'], // Add 'polling' as a fallback transport
-        });
-
-        socket.current.on('connect', () => {
-          console.log('WebSocket connected to the chat namespace');
-          socket.current.emit('joinRoom', { userId }); // Join the room
-        });
-
-        socket.current.on('connect_error', (error) => {
-          console.error('WebSocket connection error:', error);
-        });
-
-        socket.current.on('error', (error) => {
-          console.error('WebSocket error:', error);
-        });
-
-        socket.current.connect(); // Connect the socket
-      }
-
       fetchAuthorProfile();
       fetchAuthorStories();
+      
 
+      // Subscribe to Pusher channel for the user
+      const unsubscribe = subscribeToUserChannel(userId);
+
+      // Cleanup function
       return () => {
-        socket.current?.disconnect();
-      };
+        unsubscribe();
+      };  
     }
-  }, [userId, currentUserId, isFollowing]);
+  }, [userId, currentUserId]);
+
 
   const handleFollow = async () => {
     try {
@@ -103,8 +84,7 @@ const AuthorProfile = () => {
         ...prevAuthor,
         followers: prevAuthor.followers.filter(follower => follower.userId !== currentUserId),
       }));
-      setChatOpen(false); // Close chat popup if unfollowed
-      socket.current?.disconnect(); // Disconnect socket on unfollow
+      setChatOpen(false);
     } catch (err) {
       console.error("Error unfollowing user:", err);
     }
@@ -133,7 +113,7 @@ const AuthorProfile = () => {
               )}
               <h1 className="text-2xl md:text-4xl font-bold mb-4 text-gray-900">{author.username}</h1>
               <p className="text-gray-700 text-base mb-4"><strong>Email:</strong> {author.email}</p>
-              <p className="text-gray-700 text-base mb-4"><strong>Followers:</strong> {author.followers.length} </p>
+              <p className="text-gray-700 text-base mb-4"><strong>Followers:</strong> {author.followers.length}</p>
               <p className="text-gray-700 text-base mb-4"><strong>Following:</strong> {author.following.length}</p>
               {isFollowing ? (
                 <>
@@ -144,7 +124,7 @@ const AuthorProfile = () => {
                     Unfollow
                   </button>
                   <button 
-                    onClick={() => setChatOpen(true)} // Open chat popup
+                    onClick={() => setChatOpen(true)} 
                     className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-200 ease-in-out mt-2"
                   >
                     Chat
@@ -185,13 +165,12 @@ const AuthorProfile = () => {
       </div>
       <Footer />
 
-      {/* Chat Popup */}
-      {chatOpen && isFollowing && ( // Only show chat if following
+      {chatOpen && isFollowing && (
         <ChatPopup
           className="py-8"
-          socket={socket.current} // Ensure you have the socket instance available here
+          socket={socket.current}
           user={author} 
-          onClose={() => setChatOpen(false)} // Close the chat popup
+          onClose={() => setChatOpen(false)}
         />
       )}
     </div>

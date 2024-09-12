@@ -11,7 +11,7 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [otp, setOtp] = useState('');
-  const [timer, setTimer] = useState(120);
+  const [timer, setTimer] = useState(60);
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -66,13 +66,14 @@ const Signup = () => {
 
   const handleResendOTP = () => {
     dispatch(resendOTP({ email }));
-    setTimer(120); 
+    setTimer(60); // Reset timer to 60 seconds
   };
 
   const handleGoBack = () => {
     dispatch(reset());
-    setTimer(120);
+    setTimer(60); // Reset timer to 60 seconds
   };
+
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
@@ -100,7 +101,7 @@ const Signup = () => {
               onChange={(e) => setOtp(e.target.value)}
               maxLength={6}
             />
-            <p className="text-center mb-4">Send OTP Again in: {formatTime(timer)}</p>
+            <p className="text-center mb-4">Resend OTP in: {formatTime(timer)}</p>
             <button
               type="submit"
               className="w-full p-3 bg-black text-white rounded-md text-sm font-semibold mb-2"
@@ -108,7 +109,6 @@ const Signup = () => {
             >
               {isLoading ? "Verifying..." : "Verify OTP"}
             </button>
-            {/* Show Resend OTP button only if timer is up */}
             {timer <= 0 && (
               <button
                 type="button"

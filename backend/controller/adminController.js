@@ -116,3 +116,21 @@ exports.getStoryReports = async (req, res) => {
   }
 };
 
+exports.getUserCount = async (req, res) => {
+  try {
+    const userCount = await User.countDocuments({ isAdmin: { $ne: true } });
+    res.json({ count: userCount });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Function to get the count of stories
+exports.getStoryCount = async (req, res) => {
+  try {
+    const storyCount = await Story.countDocuments();
+    res.json({ count: storyCount });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

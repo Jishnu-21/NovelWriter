@@ -32,16 +32,14 @@ export const logout = createAsyncThunk('auth/logout', async () => {
   localStorage.removeItem('user'); // Ensure local storage is cleared on logout
 });
 
-export const resendOTP = createAsyncThunk('auth/resendOTP', async (email, thunkAPI) => {
+export const resendOTP = createAsyncThunk('auth/resendOTP', async ({ email }, thunkAPI) => {
   try {
-    const response = await authService.resendOTP(email);
-    return response;
+    const response = await axios.post(`${API_URL}/auth/resend-otp`, { email });
+    return response.data;
   } catch (error) {
-    console.error('Resend OTP thunk error:', error);
-    return thunkAPI.rejectWithValue(error.response?.data || error.message || 'An error occurred');
+    return thunkAPI.rejectWithValue(error.response.data);
   }
 });
-
 
 export const googleSignIn = createAsyncThunk('auth/googleSignIn', async (_, thunkAPI) => {
   try {

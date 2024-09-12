@@ -89,18 +89,17 @@ const adminLogin = async (adminData) => {
   }
 };
 
-const resendOTP = async (email) => {
+export const resendOTP = async (email) => {
   try {
-    console.log('Sending resend OTP request to:', `${API_URL2}/resend-otp`);
-    const response = await axios.post(`${API_URL2}/resend-otp`, { email });
-    console.log('Resend OTP response:', response);
+    console.log('Sending resend OTP request to:', `${API_URL}/auth/resend-otp`);
+    const response = await axios.post(`${API_URL}/auth/resend-otp`, { email });
+    console.log('Resend OTP response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Resend OTP error:', error.response || error);
+    console.error('Resend OTP error:', error.response ? error.response.data : error.message);
     throw error;
   }
 };
-
 const authService = {
   signup,
   verifyOTP,

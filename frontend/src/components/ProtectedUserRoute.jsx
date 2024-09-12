@@ -7,8 +7,8 @@ import {API_URL} from '../../src/config'
 const ProtectedUserRoute = ({ element }) => {
   const { user } = useSelector((state) => state.auth);
   const [userDetails, setUserDetails] = useState(null);
-
   const userData = user?.user || {};
+  console.log(userData)
   const userId = userData.id || user?._id;
   useEffect(() => {
     const fetchUserData = async () => {
@@ -36,10 +36,7 @@ const ProtectedUserRoute = ({ element }) => {
     return <Navigate to="/admin" replace />;
   }
 
-  if (userDetails?.isBlocked||user.isBlocked)  {
-    dispatch(logout());
-    navigate('/login');
-    }
+
   return element;
 };
 

@@ -4,6 +4,17 @@ const cloudinary = require('../config/cloudinary');
 const User = require('../models/User'); // Add this line
 const Notification = require('../models/Notification');
 
+const Pusher = require("pusher");
+
+const pusher = new Pusher({
+  appId: "1860197",
+  key: "818ffa62d3c676b1072b",
+  secret: "2d737320102eadab04a7",
+  cluster: "ap2",
+  useTLS: true
+});
+
+
 exports.createStory = async (req, res) => {
   try {
     const { description, genre, rating, name, id } = req.body;
@@ -226,6 +237,11 @@ exports.addReview = async (req, res) => {
       message: `${req.user.username} reviewed your story: ${story.name}` 
     });
 
+    pusher.trigger(`user-${story.author}`, 'notification', {
+      message: `${req.user.username} reviewed your story: ${story.name}`
+    });
+
+
     res.status(201).json({ message: 'Review added successfully', review: newReview });
   } catch (error) {
     console.error('Error adding review:', error);
@@ -267,6 +283,10 @@ exports.toggleLike = async (req, res) => {
       storyId: storyId, 
       type: 'like', 
       message: notificationMessage 
+    });
+
+    pusher.trigger(`user-${story.author}`, 'notification', {
+      message: notificationMessage
     });
 
     res.json({ message: likeIndex > -1 ? 'Story unliked' : 'Story liked', likes: story.likes.length });

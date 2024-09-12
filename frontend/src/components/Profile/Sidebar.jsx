@@ -29,6 +29,16 @@ const Sidebar = () => {
                     </Link>
                 </li>
                 <li>
+                    <Link to="/favorites" className="flex items-center py-2 hover:bg-gray-200 rounded">
+                        <i className="fas fa-user mr-2"></i> Favorites
+                    </Link>
+                </li>
+                <li>
+                    <Link to="/history" className="flex items-center py-2 hover:bg-gray-200 rounded">
+                        <i className="fas fa-user mr-2"></i> History
+                    </Link>
+                </li>
+                <li>
                     <button
                         onClick={handleLogout}
                         className="flex items-center py-2 hover:bg-gray-200 rounded"

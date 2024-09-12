@@ -58,7 +58,6 @@ const Stories = () => {
           <TableHead>
             <TableRow>
               <TableCell className="text-gray-300">Title</TableCell>
-              <TableCell className="text-gray-300">Author</TableCell>
               <TableCell className="text-gray-300">Genre</TableCell>
               <TableCell className="text-gray-300">Status</TableCell>
               <TableCell className="text-gray-300">Reports</TableCell>
@@ -69,7 +68,6 @@ const Stories = () => {
             {stories.map((story) => (
               <TableRow key={story._id}>
                 <TableCell className="text-gray-200">{story.name}</TableCell>
-                <TableCell className="text-gray-200">{story.author.username}</TableCell>
                 <TableCell className="text-gray-200">{story.genre}</TableCell>
                 <TableCell className="text-gray-200">{story.isBlocked ? 'Blocked' : 'Active'}</TableCell>
                 <TableCell>

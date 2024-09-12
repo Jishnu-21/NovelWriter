@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import FilterComponent from './FilterComponent';
 import BookComponent from './BookComponent';
-import {API_URL} from '../../config'
+import { API_URL } from '../../config';
 import Pagination from './Pagination'; 
-
 
 const BookLibrary = ({ searchTerm }) => {
   const [books, setBooks] = useState([]);
@@ -14,7 +13,7 @@ const BookLibrary = ({ searchTerm }) => {
   const booksPerPage = 9;
   const [activeGenre, setActiveGenre] = useState('All');
   const [activeRating, setActiveRating] = useState('All');
-  const [activeSort, setActiveSort] = useState('A-Z'); // Corrected to 'A-Z'
+  const [activeSort, setActiveSort] = useState('A-Z');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,8 +35,9 @@ const BookLibrary = ({ searchTerm }) => {
 
   useEffect(() => {
     let results = books.filter(book => 
-      book.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      book.genre.toLowerCase().includes(searchTerm.toLowerCase())
+      !book.isBlocked && // Ensure the book is not blocked
+      (book.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      book.genre.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     if (activeGenre !== 'All') {

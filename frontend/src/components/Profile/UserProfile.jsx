@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Sidebar from './Sidebar';
-import { FaUserCircle, FaEdit, FaCamera, FaBookOpen, FaTags, FaUserPlus, FaUserTimes } from 'react-icons/fa';
+import { FaUserCircle, FaEdit, FaCamera, FaBookOpen, FaTags } from 'react-icons/fa';
 import GenreModal from './GenreModal';
 import RecommendedStories from './RecommendedStories';
 import axios from 'axios';
 import { API_URL } from '../../config';
 import ChatPopup from './ChatPopup';
 import { io } from 'socket.io-client';
+import { subscribeToUserChannel } from '../../app/pusher';
+import FollowersPopup from './FollowersPopup'; // Import the new component
 
 const UserProfile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -21,7 +23,8 @@ const UserProfile = () => {
   const [imageFile, setImageFile] = useState(null);
   const [interests, setInterests] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
-  const socket = useRef(null); 
+  const socket = useRef(null);
+  const [showFollowersPopup, setShowFollowersPopup] = useState(false); // State for followers popup
 
   const userData = user?.user || {};
   const userId = userData.id || user._id;
@@ -29,12 +32,8 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setLoading(true);
         const response = await fetch(`${API_URL}/users/${userId}`);
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(`HTTP error ${response.status}: ${error.message || response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         const data = await response.json();
         setUser(data);
         setUsername(data.username);
@@ -47,13 +46,12 @@ const UserProfile = () => {
       }
     };
 
+    
+
     const fetchUserStories = async () => {
       try {
         const response = await fetch(`${API_URL}/story/by-author/${userId}`);
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(`HTTP error ${response.status}: ${error.message || response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         const data = await response.json();
         setUserStories(data);
       } catch (error) {
@@ -63,33 +61,18 @@ const UserProfile = () => {
     };
 
     if (userId) {
-      socket.current = io(`${API_URL}/chat`, {
-        path: '/seacher',
-        autoConnect: false,
-        transports: ['websocket', 'polling'], // Add 'polling' as a fallback transport
-      });  
-  
-      socket.current.on('connect', () => {
-        console.log('WebSocket connected to the chat namespace');
-      });
-  
-      socket.current.on('connect_error', (error) => {
-        console.error('WebSocket connection error:', error);
-      });
-  
-      socket.current.on('error', (error) => {
-        console.error('WebSocket error:', error);
-      });
-  
       fetchUserData();
       fetchUserStories();
-  
+
+      // Subscribe to Pusher channel for the user
+      const unsubscribe = subscribeToUserChannel(userId);
+
+      // Cleanup function
       return () => {
-        socket.current.disconnect();
-      };
+        unsubscribe();
+      };   
     }
   }, [userId]);
-
 
   const handleEditProfile = async () => {
     const formData = new FormData();
@@ -98,16 +81,14 @@ const UserProfile = () => {
 
     try {
       const response = await axios.put(`${API_URL}/users/${userId}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       setUser(response.data.user);
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating user:', error);
-      alert('Error updating profile');
+      alert('Error updating profile. Please try again.');
     }
   };
 
@@ -126,7 +107,7 @@ const UserProfile = () => {
   const handleAddInterests = async () => {
     try {
       const response = await axios.put(`${API_URL}/users/${userId}`, {
-        interests: interests.split(',').map(interest => interest.trim())
+        interests: interests.split(',').map(interest => interest.trim()),
       });
 
       setUser(response.data.user);
@@ -134,7 +115,7 @@ const UserProfile = () => {
       setIsModalOpen(false);
     } catch (error) {
       console.error('Error updating interests:', error);
-      alert('Error updating interests');
+      alert('Error updating interests. Please try again.');
     }
   };
 
@@ -147,30 +128,30 @@ const UserProfile = () => {
   const handleFollowUser = async () => {
     try {
       const response = await axios.post(`${API_URL}/users/follow/${userId}`, {
-        userId: userDetails._id, // ID of the user to follow
+        userId: userDetails._id,
       });
       setUser(prevState => ({
         ...prevState,
-        followers: [...prevState.followers, response.data.followerId], // Update followers list
+        followers: [...prevState.followers, response.data.followerId],
       }));
     } catch (error) {
       console.error('Error following user:', error);
-      alert('Error following user');
+      alert('Error following user. Please try again.');
     }
   };
 
   const handleUnfollowUser = async () => {
     try {
       await axios.post(`${API_URL}/users/unfollow/${userId}`, {
-        userId: userDetails._id, // ID of the user to unfollow
+        userId: userDetails._id,
       });
       setUser(prevState => ({
         ...prevState,
-        followers: prevState.followers.filter(id => id !== userDetails._id), // Update followers list
+        followers: prevState.followers.filter(id => id !== userDetails._id),
       }));
     } catch (error) {
       console.error('Error unfollowing user:', error);
-      alert('Error unfollowing user');
+      alert('Error unfollowing user. Please try again.');
     }
   };
 
@@ -264,27 +245,26 @@ const UserProfile = () => {
                 <p className="text-gray-700">
                   Interests: {userDetails?.interests?.join(', ') || 'None'}
                 </p>
-                <p className="text-gray-700">
+                <p className="text-gray-700 cursor-pointer" onClick={() => setShowFollowersPopup(true)}>
                   Followers: {userDetails?.followers?.length || 0}
                 </p>
-                <p className="text-gray-700">
+                <p className="text-gray-700 cursor-pointer" onClick={() => setShowFollowersPopup(true)}>
                   Following: {userDetails?.following?.length || 0}
-                
                 </p>
                 {chatOpen && (
-        <ChatPopup
-        className='py-8'
-          socket={socket.current}
-          user={userDetails}
-          onClose={() => setChatOpen(false)}
-        />
-      )}
-      <button
-        className="fixed bottom-4 right-4 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition "
-        onClick={() => setChatOpen(true)}
-      >
-        Chat
-      </button>
+                  <ChatPopup
+                    className='py-8'
+                    socket={socket.current}
+                    user={userDetails}
+                    onClose={() => setChatOpen(false)}
+                  />
+                )}
+                <button
+                  className="fixed bottom-4 right-4 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition"
+                  onClick={() => setChatOpen(true)}
+                >
+                  Chat
+                </button>
               </div>
             )}
           </div>
@@ -313,7 +293,6 @@ const UserProfile = () => {
           </div>
         </div>
 
-        {/* Add the RecommendedStories component */}
         <RecommendedStories userId={userId} />
       </main>
       <GenreModal
@@ -323,6 +302,15 @@ const UserProfile = () => {
         onChange={handleInterestsChange}
         onSave={handleAddInterests}
       />
+
+       {showFollowersPopup && user && (
+        <FollowersPopup
+          followers={user.followers || []}
+          following={user.following || []}
+          onClose={() => setShowFollowersPopup(false)}
+        />
+      )}
+
     </div>
   );
 };

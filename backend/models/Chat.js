@@ -8,11 +8,18 @@ const chatSchema = new mongoose.Schema({
   },
   text: {
     type: String,
-    required: true,
+    required: function() {
+      // 'text' is required only if 'image' is not provided
+      return !this.image; 
+    },
   },
   sender: {
     type: String,
     required: true,
+  },
+  image: {
+    type: String,
+    default: null,
   },
   createdAt: {
     type: Date,

@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 import { FaUserCircle, FaBars, FaTimes, FaBell } from 'react-icons/fa';
 import { API_URL } from '../../src/config/';
+import { useTheme } from '../context/ThemeContext'; // Import the dark mode context
 
 const NavBar = () => {
   const { user } = useSelector((state) => state.auth);
@@ -13,6 +14,8 @@ const NavBar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const [userDetails, setUserDetails] = useState(null);
+
+  const { darkMode, toggleDarkMode } = useTheme(); // Access dark mode context
 
   const userData = user?.user || {};
   const userId = userData.id || user?._id;
@@ -57,28 +60,28 @@ const NavBar = () => {
   const isAdmin = userData.isAdmin;
 
   return (
-    <nav className='bg-gray-300 shadow-md'>
+    <nav className={`${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-300 text-gray-800'} shadow-md`}>
       <div className='max-w-9xl mx-auto sm:px-6 lg:px-8'>
         <div className='flex justify-between h-16'>
           <div className='flex items-center'>
-            <Link to="/" className='text-2xl font-light text-gray-800'>
+            <Link to="/" className={`text-2xl font-light ${darkMode ? 'text-white' : 'text-gray-800'}`}>
               NovelWriter
             </Link>
           </div>
           <div className='hidden md:flex md:items-center md:space-x-4'>
-            <Link to="/gallery" className='text-gray-800 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium'>
+            <Link to="/gallery" className={`${darkMode ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-200'} px-3 py-2 rounded-md text-sm font-medium`}>
               Gallery
             </Link>
-            <Link to="/about" className='text-gray-800 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium'>
+            <Link to="/about" className={`${darkMode ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-200'} px-3 py-2 rounded-md text-sm font-medium`}>
               About
             </Link>
-            <Link to="/contact" className='text-gray-800 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium'>
+            <Link to="/contact" className={`${darkMode ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-200'} px-3 py-2 rounded-md text-sm font-medium`}>
               Contact Us
             </Link>
           </div>
           <div className='flex items-center'>
             {user && !isAdmin && (
-              <Link to="/notifications" className='text-gray-800 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium mr-2'>
+              <Link to="/notifications" className={`${darkMode ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-200'} px-3 py-2 rounded-md text-sm font-medium mr-2`}>
                 <FaBell className="w-5 h-5" />
               </Link>
             )}
@@ -96,23 +99,24 @@ const NavBar = () => {
                       className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (
-                    <FaUserCircle className="w-8 h-8 text-gray-500" />
+                    <FaUserCircle className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} w-8 h-8`} />
                   )}
                 </button>
                 {showDropdown && (
                   <div
                     ref={dropdownRef}
-                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+                    className={`${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-700'} origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 focus:outline-none z-50`}
                   >
-                    <p className='font-sans py-1 px-2 bg-gray-50'>{userDetails.username}</p>
-                    <hr className="border-t-2 border-gray-300"/>
-
-                    <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <p className={`font-sans py-1 px-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                      {userDetails.username}
+                    </p>
+                    <hr className={`border-t-2 ${darkMode ? 'border-gray-600' : 'border-gray-300'}`} />
+                    <Link to="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Profile
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                     >
                       Logout
                     </button>
@@ -124,10 +128,13 @@ const NavBar = () => {
                 Login
               </Link>
             ) : null}
+            <button onClick={toggleDarkMode} className="ml-4 md:ml-8">
+              {darkMode ? '☀️' : '🌙'}
+            </button>
             <div className='ml-4 md:hidden'>
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className='inline-flex items-center justify-center p-2 rounded-md text-gray-800 hover:text-gray-500 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500'
+                className={`inline-flex items-center justify-center p-2 rounded-md ${darkMode ? 'text-white hover:text-gray-500 hover:bg-gray-800' : 'text-gray-800 hover:text-gray-500 hover:bg-gray-200'} focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500`}
                 aria-label="Menu"
               >
                 {showMenu ? <FaTimes className="block h-6 w-6" /> : <FaBars className="block h-6 w-6" />}
@@ -140,17 +147,17 @@ const NavBar = () => {
       {showMenu && (
         <div className='md:hidden'>
           <div className='px-2 pt-2 pb-3 space-y-1 sm:px-3'>
-            <Link to="/gallery" className='text-gray-800 hover:bg-gray-200 block px-3 py-2 rounded-md text-base font-medium'>
+            <Link to="/gallery" className={`${darkMode ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-200'} block px-3 py-2 rounded-md text-base font-medium`}>
               Gallery
             </Link>
-            <Link to="/about" className='text-gray-800 hover:bg-gray-200 block px-3 py-2 rounded-md text-base font-medium'>
+            <Link to="/about" className={`${darkMode ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-200'} block px-3 py-2 rounded-md text-base font-medium`}>
               About
             </Link>
-            <Link to="/contact" className='text-gray-800 hover:bg-gray-200 block px-3 py-2 rounded-md text-base font-medium'>
+            <Link to="/contact" className={`${darkMode ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-200'} block px-3 py-2 rounded-md text-base font-medium`}>
               Contact Us
             </Link>
             {user && !isAdmin && (
-              <Link to="/notifications" className='text-gray-800 hover:bg-gray-200 block px-3 py-2 rounded-md text-base font-medium'>
+              <Link to="/notifications" className={`${darkMode ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-200'} block px-3 py-2 rounded-md text-base font-medium`}>
                 Notifications
               </Link>
             )}

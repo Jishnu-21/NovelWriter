@@ -13,11 +13,13 @@ const chapterRoutes = require('./routes/chapter');
 const userRoutes = require('./routes/user');
 const chatRoutes = require('./routes/chat');
 const reportRoutes = require('./routes/Report');
+const readingHistoryRoutes = require('./routes/readingHistory');
 
 const apolloServer = require('./graphql/apolloServer');
 const setupSocket = require('./sockets/socket');
 
 const app = express();
+
 const server = http.createServer(app);
 
 app.use(express.json());
@@ -36,7 +38,10 @@ mongoose.connect(process.env.MONGODB_URI, {
 // Set up Apollo Server
 const startServer = async () => {
     await apolloServer.start();
-    apolloServer.applyMiddleware({ app });
+    apolloServer.applyMiddleware({ app, path: '/graphql' }); // or groqql
+
+    // Set up Socket.IO
+    setupSocket(server);
 
     // Start the HTTP server
     const PORT = process.env.PORT || 5000;
@@ -56,6 +61,7 @@ app.use('/api/chapters', chapterRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/report', reportRoutes);
+app.use('/api/reading-history', readingHistoryRoutes);
 
 // Serve static files from the frontend dist folder
 app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
@@ -64,6 +70,3 @@ app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html'));
 });
-
-// Set up socket.io
-setupSocket(server);

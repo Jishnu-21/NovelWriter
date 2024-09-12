@@ -24,7 +24,12 @@ import AuthorProfile from './AuthorProfile';
 import NotificationPage from './Pages/NotificationPage';
 import AIwrting from './Pages/AI/AIwrting';
 import StoryReader from './Pages/AI/StoryReader';
-
+import LikedBooks from './components/Profile/LikedBooks';
+import History from './components/Profile/History';
+import {NotificationProvider} from './context/NotificationContext'
+import NotificationList from './components/NotificationList';
+import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
   const dispatch = useDispatch();
@@ -35,7 +40,11 @@ function App() {
   }, [dispatch]);
 
   return (
+    <NotificationProvider>
+    <NotificationList />
     <Router>
+      <ThemeProvider>
+    <AuthProvider>
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/register" element={<Signup />} />
@@ -68,11 +77,20 @@ function App() {
        <Route path="/profile"
           element={<ProtectedUserRoute element={<Profile />} />} 
           />
+       <Route path="/favorites"
+          element={<ProtectedUserRoute element={<LikedBooks />} />} 
+          />
+       <Route path="/history"
+          element={<ProtectedUserRoute element={<History />} />} 
+          />
        <Route path="/author/:userId" element={<AuthorProfile />} />
        <Route path="/notifications" element={<NotificationPage />} />
-
 </Routes>
+</AuthProvider>
+</ThemeProvider>
     </Router>
+    </NotificationProvider>
+
   );
 }
 

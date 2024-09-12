@@ -114,7 +114,6 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
-
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -122,7 +121,7 @@ exports.login = async (req, res) => {
     }
 
     if (user.isBlocked) {
-      return res.status(403).json({ message: 'User is blocked. Please contact support.' });
+      return res.status(403).json({ message: 'User is blocked. Please contact support.', isBlocked: true });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -132,12 +131,16 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    res.json({ token, user: { id: user.id, username: user.username, email } });
+    res.json({
+      token,
+      user: { id: user.id, username: user.username, email, isBlocked: user.isBlocked }, // Include isBlocked in the response
+    });
   } catch (error) {
     console.error('Error during login:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 exports.resendOtp = async (req, res) => {
   try {
@@ -148,6 +151,7 @@ exports.resendOtp = async (req, res) => {
     // Check if the temporary user data exists
     const tempUser = temporaryStore.get(email);
     if (!tempUser) {
+      console.log('User not found in temporary store for email:', email);
       return res.status(404).json({ message: 'User not found' });
     }
 
@@ -169,18 +173,14 @@ exports.resendOtp = async (req, res) => {
     };
 
     // Send the new OTP via email
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log('Error sending new OTP email:', error);
-        return res.status(500).json({ message: 'Error sending OTP email' });
-      }
-      console.log('New OTP email sent:', info.response);
-    });
+    console.log('Attempting to send email with new OTP');
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully');
 
     res.status(200).json({ message: 'New OTP sent to email' });
   } catch (error) {
     console.error('Error during OTP resend:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 

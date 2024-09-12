@@ -1,18 +1,21 @@
-import React from 'react'
-import NavBar from '../components/NavBar'
-import Header from '../components/Header'
-import InfoFP from '../components/InfoFP'
-import Footer from '../components/Footer'
+import React from 'react';
+import NavBar from '../components/NavBar';
+import Header from '../components/Header';
+import InfoFP from '../components/InfoFP';
+import Footer from '../components/Footer';
+import { useTheme } from '../context/ThemeContext'; // Import the ThemeContext
 
 const Homepage = () => {
-  return (
-    <div className="bg-gray-900 text-white"> // Replace with Tailwind CSS classes
-      <NavBar/>
-      <Header/>
-      <InfoFP/>
-      <Footer/>
-    </div>
-  )
-}
+  const { darkMode } = useTheme(); // Access darkMode from the context
 
-export default Homepage
+  return (
+    <div>
+      <NavBar />
+      <Header/> 
+      <InfoFP darkMode={darkMode} /> {/* Pass darkMode as a prop */}
+      <Footer />
+    </div>
+  );
+};
+
+export default Homepage;

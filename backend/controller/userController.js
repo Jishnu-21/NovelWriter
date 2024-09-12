@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Story = require('../models/Story');
 const cloudinary = require('../config/cloudinary');
 const Notification = require('../models/Notification');
 
@@ -94,6 +95,8 @@ exports.followUser = async (req, res) => {
       type: 'follow', // You can define the type for easier filtering later
       createdAt: new Date()
     });
+    
+    
 
     res.status(200).json({ message: 'User followed successfully' });
   } catch (error) {
@@ -147,5 +150,25 @@ exports.getNotifications = async (req, res) => {
   } catch (error) {
     console.error('Error fetching notifications:', error);
     res.status(500).json({ message: 'Server error', error: error.toString() });
+  }
+};
+
+
+exports.getUserliked = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Find all stories where the likes array contains the userId and populate the userId field
+    const likedBooks = await Story.find({ 'likes.userId': userId })
+      .populate('likes.userId', 'name email'); // Populate userId with name and email fields from User
+ 
+    if (!likedBooks || likedBooks.length === 0) {
+      return res.status(404).json({ message: 'No liked books found for this user' });
+    }
+     console.log(likedBooks)
+    res.status(200).json({ likedBooks });
+  } catch (error) {
+    console.error('Error fetching liked books:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
