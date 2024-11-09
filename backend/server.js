@@ -21,8 +21,9 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(express.json());
+
 app.use(cors({
-    origin: 'https://novelwriter-2.onrender.com',
+    origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
 }));
 
@@ -37,7 +38,6 @@ mongoose.connect(process.env.MONGODB_URI, {
 const startServer = async () => {
     await apolloServer.start();
     apolloServer.applyMiddleware({ app, path: '/graphql' }); // Specify the path here
-
     // Start the HTTP server
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {
