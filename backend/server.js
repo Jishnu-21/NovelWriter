@@ -23,7 +23,7 @@ const server = http.createServer(app);
 app.use(express.json());
 
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: 'https://novelwriter-2.onrender.com',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
 }));
 
